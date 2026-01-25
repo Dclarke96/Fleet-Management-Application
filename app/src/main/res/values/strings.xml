@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">D308project</string>
+    <string name="add_vacation">Add Vacation</string>
+    <string name="your_vacations">Your Vacations</string>
+    <string name="vacation_title">Vacation Title</string>
+    <string name="hotel_or_place_to_stay">Hotel or Place to Stay</string>
+    <string name="start_date_yyyy_mm_dd">Start Date (YYYY-MM-DD)</string>
+    <string name="end_date_yyyy_mm_dd">End Date (YYYY-MM-DD)</string>
+    <string name="save_vacation">Save Vacation</string>
+    <string name="delete_vacation">Delete Vacation</string>
+</resources>
