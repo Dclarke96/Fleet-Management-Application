@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "D308project"
+rootProject.name = "Fleet Management"
 include(":app")

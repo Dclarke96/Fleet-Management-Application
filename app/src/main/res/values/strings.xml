@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">D308project</string>
+    <string name="app_name">Fleet Management</string>
     <string name="add_vacation">Add Vacation</string>
     <string name="your_vacations">Your Vacations</string>
     <string name="vacation_title">Vacation Title</string>
