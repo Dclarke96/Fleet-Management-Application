@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import android.app.DatePickerDialog;
@@ -19,6 +18,7 @@ import java.util.Locale;
 import com.example.d308project.R;
 import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.Excursion;
+import com.example.d308project.data.Vehicle;
 
 public class ExcursionDetailActivity extends AppCompatActivity {
 
@@ -109,14 +109,14 @@ public class ExcursionDetailActivity extends AppCompatActivity {
             if (excursionDate == null) throw new ParseException("Null parsed date", 0);
 
             // Fetch the parent vacation and validate the date range
-            com.example.d308project.data.Vacation vacation = db.vacationDao().getVacationById(vacationId);
-            if (vacation == null) {
+            Vehicle vehicle = db.vacationDao().getVacationById(vacationId);
+            if (vehicle == null) {
                 Toast.makeText(this, "Parent vacation not found.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Date startDate = sdf.parse(vacation.startDate);
-            Date endDate = sdf.parse(vacation.endDate);
+            Date startDate = sdf.parse(vehicle.startDate);
+            Date endDate = sdf.parse(vehicle.endDate);
 
             if (startDate == null || endDate == null) {
                 Toast.makeText(this, "Invalid vacation date range.", Toast.LENGTH_SHORT).show();
@@ -125,7 +125,7 @@ public class ExcursionDetailActivity extends AppCompatActivity {
 
             if (excursionDate.before(startDate) || excursionDate.after(endDate)) {
                 Toast.makeText(this, "Excursion must be within the vacation dates: "
-                        + vacation.startDate + " to " + vacation.endDate, Toast.LENGTH_LONG).show();
+                        + vehicle.startDate + " to " + vehicle.endDate, Toast.LENGTH_LONG).show();
                 return;
             }
 

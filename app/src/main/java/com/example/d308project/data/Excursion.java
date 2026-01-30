@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 
 @Entity(
         foreignKeys = @ForeignKey(
-                entity = Vacation.class,
+                entity = Vehicle.class,
                 parentColumns = "id",
                 childColumns = "vacationOwnerId",
                 onDelete = ForeignKey.RESTRICT

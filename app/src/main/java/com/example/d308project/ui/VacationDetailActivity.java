@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.Excursion;
-import com.example.d308project.data.Vacation;
+import com.example.d308project.data.Vehicle;
 import com.example.d308project.R;
 
 import java.util.Calendar;
@@ -139,13 +139,13 @@ public class VacationDetailActivity extends AppCompatActivity {
     }
 
     private void loadVacation() {
-        Vacation vacation = db.vacationDao().getVacationById(vacationId);
-        if (vacation != null) {
-            editTitle.setText(vacation.title);
-            editHotel.setText(vacation.hotel);
-            editStartDate.setText(vacation.startDate);
-            editEndDate.setText(vacation.endDate);
-            switchAlert.setChecked(vacation.alertsEnabled);
+        Vehicle vehicle = db.vacationDao().getVacationById(vacationId);
+        if (vehicle != null) {
+            editTitle.setText(vehicle.title);
+            editHotel.setText(vehicle.hotel);
+            editStartDate.setText(vehicle.startDate);
+            editEndDate.setText(vehicle.endDate);
+            switchAlert.setChecked(vehicle.alertsEnabled);
         }
 
         // Load and display excursions
@@ -204,21 +204,21 @@ public class VacationDetailActivity extends AppCompatActivity {
             return;
         }
 
-        Vacation vacation = new Vacation(title, hotel, start, end, alertsEnabled);
+        Vehicle vehicle = new Vehicle(title, hotel, start, end, alertsEnabled);
 
         if (vacationId == -1) {
-            db.vacationDao().insertVacation(vacation);
+            db.vacationDao().insertVacation(vehicle);
             vacationId = db.vacationDao().getLastInsertedId(); // Your DAO should implement this
         } else {
-            vacation.id = vacationId;
-            db.vacationDao().updateVacation(vacation);
+            vehicle.id = vacationId;
+            db.vacationDao().updateVacation(vehicle);
         }
 
         if (alertsEnabled) {
-            vacation.id = vacationId;
-            scheduleVacationAlerts(vacation);
+            vehicle.id = vacationId;
+            scheduleVacationAlerts(vehicle);
         } else {
-            cancelExistingAlarms(vacation.id);
+            cancelExistingAlarms(vehicle.id);
         }
 
         btnManageExcursions.setVisibility(View.VISIBLE);
@@ -226,34 +226,34 @@ public class VacationDetailActivity extends AppCompatActivity {
         finish();
     }
 
-    private void scheduleVacationAlerts(Vacation vacation) {
+    private void scheduleVacationAlerts(Vehicle vehicle) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        cancelExistingAlarms(vacation.id);
+        cancelExistingAlarms(vehicle.id);
 
-        long startTime = parseDateToMillis(vacation.startDate);
+        long startTime = parseDateToMillis(vehicle.startDate);
         if (startTime > 0) {
             Intent startIntent = new Intent(this, VacationAlertReceiver.class);
-            startIntent.putExtra("title", vacation.title);
+            startIntent.putExtra("title", vehicle.title);
             startIntent.putExtra("type", "start");
 
             PendingIntent startPendingIntent = PendingIntent.getBroadcast(
                     this,
-                    vacation.id * 2,
+                    vehicle.id * 2,
                     startIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | getPendingIntentMutableFlag()
             );
             alarmManager.set(AlarmManager.RTC_WAKEUP, startTime, startPendingIntent);
         }
 
-        long endTime = parseDateToMillis(vacation.endDate);
+        long endTime = parseDateToMillis(vehicle.endDate);
         if (endTime > 0) {
             Intent endIntent = new Intent(this, VacationAlertReceiver.class);
-            endIntent.putExtra("title", vacation.title);
+            endIntent.putExtra("title", vehicle.title);
             endIntent.putExtra("type", "end");
 
             PendingIntent endPendingIntent = PendingIntent.getBroadcast(
                     this,
-                    vacation.id * 2 + 1,
+                    vehicle.id * 2 + 1,
                     endIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | getPendingIntentMutableFlag()
             );
