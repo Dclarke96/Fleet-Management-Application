@@ -1,6 +1,6 @@
 Title: Vacation Scheduler
 
-Purpose: The Vacation Scheduler is a mobile application developed for Android devices that allows users to manage personal vacations and associated excursions. The app provides functionality to create, edit, and delete vehicle plans, set alerts, and view detailed information for each excursion and vehicle entry.
+Purpose: The Vacation Scheduler is a mobile application developed for Android devices that allows users to manage personal vacations and associated maintenanceRecords. The app provides functionality to create, edit, and delete vehicle plans, set alerts, and view detailed information for each maintenanceRecord and vehicle entry.
 
 How to Operate the Application:
 Launch the App
@@ -25,17 +25,17 @@ Edit or delete using available options.
 
 View Excursions
 
-In a vehicle detail view, tap “View Excursions” to see all excursions for that vehicle.
+In a vehicle detail view, tap “View Excursions” to see all maintenanceRecords for that vehicle.
 
-Add new excursions with title, description, and dates.
+Add new maintenanceRecords with title, description, and dates.
 
-Each excursion includes optional alert functionality.
+Each maintenanceRecord includes optional alert functionality.
 
 Alerts & Validation
 
 Alerts are scheduled using Android’s alarm service.
 
-Dates are validated to ensure excursions fall within the parent vehicle date range.
+Dates are validated to ensure maintenanceRecords fall within the parent vehicle date range.
 
 APK Deployment Version:
 The signed APK is built and tested on:

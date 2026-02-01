@@ -5,13 +5,13 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Vehicle.class, Excursion.class}, version = 6)
+@Database(entities = {Vehicle.class, MaintenanceRecord.class}, version = 6)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase INSTANCE;
 
     public abstract VehicleDao vacationDao();
-    public abstract ExcursionDao excursionDao();
+    public abstract MaintenanceDao excursionDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {

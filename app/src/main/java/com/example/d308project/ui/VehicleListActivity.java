@@ -12,7 +12,7 @@ import com.example.d308project.data.Vehicle;
 
 import java.util.List;
 
-public class VacationListActivity extends AppCompatActivity {
+public class VehicleListActivity extends AppCompatActivity {
 
     private ListView vacationListView;
     private AppDatabase db;

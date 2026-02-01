@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         btnViewVacations.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VacationListActivity.class);
+                Intent intent = new Intent(MainActivity.this, VehicleListActivity.class);
                 startActivity(intent);
             }
         });

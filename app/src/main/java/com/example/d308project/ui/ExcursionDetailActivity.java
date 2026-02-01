@@ -17,7 +17,7 @@ import java.util.Locale;
 
 import com.example.d308project.R;
 import com.example.d308project.data.AppDatabase;
-import com.example.d308project.data.Excursion;
+import com.example.d308project.data.MaintenanceRecord;
 import com.example.d308project.data.Vehicle;
 
 public class ExcursionDetailActivity extends AppCompatActivity {
@@ -80,11 +80,11 @@ public class ExcursionDetailActivity extends AppCompatActivity {
     }
 
     private void loadExcursion() {
-        Excursion excursion = db.excursionDao().getExcursionById(excursionId);
-        if (excursion != null) {
-            editTitle.setText(excursion.title);
-            editDate.setText(excursion.date);
-            switchAlert.setChecked(excursion.alertsEnabled);
+        MaintenanceRecord maintenanceRecord = db.excursionDao().getExcursionById(excursionId);
+        if (maintenanceRecord != null) {
+            editTitle.setText(maintenanceRecord.title);
+            editDate.setText(maintenanceRecord.date);
+            switchAlert.setChecked(maintenanceRecord.alertsEnabled);
         }
     }
 
@@ -136,14 +136,14 @@ public class ExcursionDetailActivity extends AppCompatActivity {
 
         if (excursionId == -1) {
             // New excursion
-            Excursion newExcursion = new Excursion();
-            newExcursion.vacationOwnerId = vacationId;
-            newExcursion.title = title;
-            newExcursion.date = date;
-            db.excursionDao().insertExcursion(newExcursion);
+            MaintenanceRecord newMaintenanceRecord = new MaintenanceRecord();
+            newMaintenanceRecord.vacationOwnerId = vacationId;
+            newMaintenanceRecord.title = title;
+            newMaintenanceRecord.date = date;
+            db.excursionDao().insertExcursion(newMaintenanceRecord);
         } else {
             // Update existing
-            Excursion existing = db.excursionDao().getExcursionById(excursionId);
+            MaintenanceRecord existing = db.excursionDao().getExcursionById(excursionId);
             if (existing != null) {
                 existing.title = title;
                 existing.date = date;

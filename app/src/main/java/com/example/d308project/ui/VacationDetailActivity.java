@@ -16,7 +16,7 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.d308project.data.AppDatabase;
-import com.example.d308project.data.Excursion;
+import com.example.d308project.data.MaintenanceRecord;
 import com.example.d308project.data.Vehicle;
 import com.example.d308project.R;
 
@@ -74,8 +74,8 @@ public class VacationDetailActivity extends AppCompatActivity {
             if (vacationId != -1) {
                 btnDelete.setVisibility(View.VISIBLE);
                 btnDelete.setOnClickListener(v -> {
-                    List<Excursion> excursions = db.excursionDao().getExcursionsForVacation(vacationId);
-                    if (excursions != null && !excursions.isEmpty()) {
+                    List<MaintenanceRecord> maintenanceRecords = db.excursionDao().getExcursionsForVacation(vacationId);
+                    if (maintenanceRecords != null && !maintenanceRecords.isEmpty()) {
                         Toast.makeText(this, "Cannot delete vacation with existing excursions. Please delete them first.", Toast.LENGTH_LONG).show();
                     } else {
                         cancelExistingAlarms(vacationId);
@@ -150,8 +150,8 @@ public class VacationDetailActivity extends AppCompatActivity {
 
         // Load and display excursions
         List<String> excursionTitles = new ArrayList<>();
-        List<Excursion> excursions = db.excursionDao().getExcursionsForVacation(vacationId);
-        for (Excursion e : excursions) {
+        List<MaintenanceRecord> maintenanceRecords = db.excursionDao().getExcursionsForVacation(vacationId);
+        for (MaintenanceRecord e : maintenanceRecords) {
             excursionTitles.add(e.title); // Customize as needed
         }
 

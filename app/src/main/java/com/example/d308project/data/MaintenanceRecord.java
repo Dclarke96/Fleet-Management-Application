@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
                 onDelete = ForeignKey.RESTRICT
         )
 )
-public class Excursion {
+public class MaintenanceRecord {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
