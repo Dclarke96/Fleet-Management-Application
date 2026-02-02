@@ -26,20 +26,29 @@ public class Vehicle {
     @ColumnInfo(name = "maintenance_alerts_enabled")
     public boolean maintenanceAlertsEnabled;
 
+    @ColumnInfo(name = "start_date")
+    public String startDate; // yyyy-MM-dd
+
+    @ColumnInfo(name = "end_date")
+    public String endDate;   // yyyy-MM-dd, can be null if vehicle is still active
+
     public Vehicle() {}
 
-    public Vehicle(String make, String model, int year, String licensePlate, boolean maintenanceAlertsEnabled) {
+    public Vehicle(String make, String model, int year, String licensePlate,
+                   boolean maintenanceAlertsEnabled, String startDate, String endDate) {
         this.make = make;
         this.model = model;
         this.year = year;
         this.licensePlate = licensePlate;
         this.maintenanceAlertsEnabled = maintenanceAlertsEnabled;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return year + " " + make + " " + model + " (" + licensePlate + ")";
+        return year + " " + make + " " + model + " (" + licensePlate + ")" +
+                " [" + startDate + " - " + (endDate != null ? endDate : "Present") + "]";
     }
 }
-

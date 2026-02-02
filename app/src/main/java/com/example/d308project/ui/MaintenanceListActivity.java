@@ -22,7 +22,7 @@ public class MaintenanceListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maintenance_list); // Updated layout name
+        setContentView(R.layout.activity_maintenance_list); // Ensure this XML exists
 
         maintenanceContainer = findViewById(R.id.maintenanceContainer);
         btnAddMaintenance = findViewById(R.id.btnAddMaintenance);
@@ -57,15 +57,16 @@ public class MaintenanceListActivity extends AppCompatActivity {
 
         List<MaintenanceRecord> maintenanceRecords = db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
         for (MaintenanceRecord record : maintenanceRecords) {
-            View item = getLayoutInflater().inflate(R.layout.item_maintenance, null); // Updated layout
+            View item = getLayoutInflater().inflate(R.layout.item_maintenance_record, null); // Ensure XML matches IDs
 
-            TextView txtTitle = item.findViewById(R.id.txtMaintenanceTitle);
+            TextView txtDescription = item.findViewById(R.id.txtMaintenanceDescription);
             TextView txtDate = item.findViewById(R.id.txtMaintenanceDate);
             Button btnEdit = item.findViewById(R.id.btnEditMaintenance);
             Button btnDelete = item.findViewById(R.id.btnDeleteMaintenance);
 
-            txtTitle.setText(record.title);
-            txtDate.setText(record.date);
+            // Updated field names
+            txtDescription.setText(record.description);
+            txtDate.setText(record.serviceDate);
 
             btnEdit.setOnClickListener(v -> {
                 Intent intent = new Intent(this, MaintenanceDetailActivity.class);
