@@ -9,7 +9,7 @@ import android.util.Log;
 
 import com.example.d308project.R;
 
-public class ExcursionAlertReceiver extends BroadcastReceiver {
+public class MaintenanceAlertReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String title = intent.getStringExtra("excursionTitle");

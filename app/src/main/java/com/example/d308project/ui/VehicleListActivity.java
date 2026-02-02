@@ -29,7 +29,7 @@ public class VehicleListActivity extends AppCompatActivity {
         vacationListView = findViewById(R.id.vacation_list_view);
 
         Button btnAddVacation = findViewById(R.id.btnAddVacation);
-        btnAddVacation.setOnClickListener(view -> startActivity(new Intent(this, VacationDetailActivity.class)));
+        btnAddVacation.setOnClickListener(view -> startActivity(new Intent(this, VehicleDetailActivity.class)));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class VehicleListActivity extends AppCompatActivity {
 
         vacationListView.setOnItemClickListener((parent, view, position, id) -> {
             Vehicle selectedVehicle = vehicles.get(position);
-            Intent intent = new Intent(this, VacationDetailActivity.class);
+            Intent intent = new Intent(this, VehicleDetailActivity.class);
             intent.putExtra("vacationId", selectedVehicle.id);
             startActivity(intent);
         });

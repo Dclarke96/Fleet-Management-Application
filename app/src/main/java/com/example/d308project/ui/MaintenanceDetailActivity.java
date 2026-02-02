@@ -20,7 +20,7 @@ import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.MaintenanceRecord;
 import com.example.d308project.data.Vehicle;
 
-public class ExcursionDetailActivity extends AppCompatActivity {
+public class MaintenanceDetailActivity extends AppCompatActivity {
 
     private EditText editTitle, editDate;
     private Switch switchAlert;
@@ -70,7 +70,7 @@ public class ExcursionDetailActivity extends AppCompatActivity {
 
         editDate.setOnClickListener(v -> {
             new DatePickerDialog(
-                    ExcursionDetailActivity.this,
+                    MaintenanceDetailActivity.this,
                     dateSetListener,
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -184,7 +184,7 @@ public class ExcursionDetailActivity extends AppCompatActivity {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        Intent intent = new Intent(this, ExcursionAlertReceiver.class);
+        Intent intent = new Intent(this, MaintenanceAlertReceiver.class);
         intent.putExtra("excursionTitle", title);
 
         int requestCode = title.hashCode();

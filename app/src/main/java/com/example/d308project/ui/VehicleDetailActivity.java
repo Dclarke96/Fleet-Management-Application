@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 
-public class VacationDetailActivity extends AppCompatActivity {
+public class VehicleDetailActivity extends AppCompatActivity {
 
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1;
 
@@ -105,7 +105,7 @@ public class VacationDetailActivity extends AppCompatActivity {
 
         btnAddExcursion.setOnClickListener(v -> {
             if (vacationId != -1) {
-                Intent intent = new Intent(VacationDetailActivity.this, ExcursionListActivity.class);
+                Intent intent = new Intent(VehicleDetailActivity.this, MaintenanceListActivity.class);
                 intent.putExtra("vacationId", vacationId);
                 startActivityForResult(intent, REQUEST_MANAGE_EXCURSIONS);
             } else {
@@ -115,7 +115,7 @@ public class VacationDetailActivity extends AppCompatActivity {
 
         btnManageExcursions.setOnClickListener(v -> {
             if (vacationId != -1) {
-                Intent intent = new Intent(VacationDetailActivity.this, ExcursionListActivity.class);
+                Intent intent = new Intent(VehicleDetailActivity.this, MaintenanceListActivity.class);
                 intent.putExtra("vacationId", vacationId);
                 startActivityForResult(intent, REQUEST_MANAGE_EXCURSIONS);
             }

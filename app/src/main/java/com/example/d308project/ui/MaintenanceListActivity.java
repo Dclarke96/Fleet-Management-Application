@@ -12,7 +12,7 @@ import com.example.d308project.data.MaintenanceRecord;
 
 import java.util.List;
 
-public class ExcursionListActivity extends AppCompatActivity {
+public class MaintenanceListActivity extends AppCompatActivity {
 
     private AppDatabase db;
     private int vacationId;
@@ -38,7 +38,7 @@ public class ExcursionListActivity extends AppCompatActivity {
         }
 
         btnAddExcursion.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ExcursionDetailActivity.class);
+            Intent intent = new Intent(this, MaintenanceDetailActivity.class);
             intent.putExtra("vacationId", vacationId);
             startActivity(intent);
         });
@@ -73,7 +73,7 @@ public class ExcursionListActivity extends AppCompatActivity {
             txtDate.setText(maintenanceRecord.date);
 
             btnEdit.setOnClickListener(v -> {
-                Intent intent = new Intent(this, ExcursionDetailActivity.class);
+                Intent intent = new Intent(this, MaintenanceDetailActivity.class);
                 intent.putExtra("excursionId", maintenanceRecord.id);
                 intent.putExtra("vacationId", vacationId);
                 startActivity(intent);

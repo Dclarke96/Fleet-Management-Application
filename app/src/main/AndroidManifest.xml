@@ -28,17 +28,14 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".ui.VacationDetailActivity"
+            android:name=".ui.VehicleDetailActivity"
             android:windowSoftInputMode="adjustResize" />
 
-        <activity android:name=".ui.ExcursionDetailActivity" />
-        <activity android:name=".ui.ExcursionListActivity" />
+        <activity android:name=".ui.MaintenanceDetailActivity" />
+        <activity android:name=".ui.MaintenanceListActivity" />
 
-        <receiver android:name=".ui.ExcursionAlertReceiver"
+        <receiver android:name=".ui.MaintenanceAlertReceiver"
             android:exported="true"/>
-
-        <receiver android:name=".ui.VacationAlertReceiver"
-            android:exported="false" />
 
     </application>
 
