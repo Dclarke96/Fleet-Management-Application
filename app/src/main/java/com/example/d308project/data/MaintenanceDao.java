@@ -1,33 +1,36 @@
 package com.example.d308project.data;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
-import androidx.room.Delete;
+
 import java.util.List;
 
 @Dao
 public interface MaintenanceDao {
 
-    @Query("SELECT COUNT(*) FROM MaintenanceRecord WHERE vacationOwnerId = :vacationId")
-    int countExcursionsForVacation(int vacationId);
+    // Count maintenance records for a specific vehicle
+    @Query("SELECT COUNT(*) FROM maintenance_records WHERE vehicle_id = :vehicleId")
+    int countMaintenanceForVehicle(int vehicleId);
 
     @Insert
-    void insertExcursion(MaintenanceRecord maintenanceRecord);
+    void insertMaintenance(MaintenanceRecord maintenanceRecord);
 
     @Update
-    void updateExcursion(MaintenanceRecord maintenanceRecord);
+    void updateMaintenance(MaintenanceRecord maintenanceRecord);
 
     @Delete
-    void deleteExcursion(MaintenanceRecord maintenanceRecord);
+    void deleteMaintenance(MaintenanceRecord maintenanceRecord);
 
-    @Query("DELETE FROM MaintenanceRecord WHERE id = :excursionId")
-    void deleteExcursionById(int excursionId);
+    @Query("DELETE FROM maintenance_records WHERE id = :maintenanceId")
+    void deleteMaintenanceById(int maintenanceId);
 
-    @Query("SELECT * FROM MaintenanceRecord WHERE vacationOwnerId = :vacationId")
-    List<MaintenanceRecord> getExcursionsForVacation(int vacationId);
+    // Retrieve all maintenance records for a vehicle
+    @Query("SELECT * FROM maintenance_records WHERE vehicle_id = :vehicleId ORDER BY service_date ASC")
+    List<MaintenanceRecord> getMaintenanceForVehicle(int vehicleId);
 
-    @Query("SELECT * FROM MaintenanceRecord WHERE id = :id")
-    MaintenanceRecord getExcursionById(int id);
+    @Query("SELECT * FROM maintenance_records WHERE id = :id LIMIT 1")
+    MaintenanceRecord getMaintenanceById(int id);
 }

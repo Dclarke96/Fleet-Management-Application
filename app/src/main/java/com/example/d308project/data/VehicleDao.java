@@ -12,23 +12,24 @@ import java.util.List;
 public interface VehicleDao {
 
     @Insert
-    long insertVacation(Vehicle vehicle);
+    long insertVehicle(Vehicle vehicle);
 
     @Update
-    void updateVacation(Vehicle vehicle);
+    void updateVehicle(Vehicle vehicle);
 
     @Delete
-    void deleteVacation(Vehicle vehicle);
+    void deleteVehicle(Vehicle vehicle);
 
-    @Query("SELECT * FROM Vehicle ORDER BY start_date ASC")
-    List<Vehicle> getAllVacations();
+    @Query("SELECT * FROM vehicles ORDER BY year ASC")
+    List<Vehicle> getAllVehicles();
 
-    @Query("SELECT * FROM Vehicle WHERE id = :id LIMIT 1")
-    Vehicle getVacationById(int id);
+    @Query("SELECT * FROM vehicles WHERE id = :id LIMIT 1")
+    Vehicle getVehicleById(int id);
 
-    @Query("DELETE FROM Vehicle WHERE id = :vacationId")
-    void deleteVacationById(int vacationId);
+    @Query("DELETE FROM vehicles WHERE id = :vehicleId")
+    void deleteVehicleById(int vehicleId);
 
-    @Query("SELECT MAX(id) FROM Vehicle")
+    @Query("SELECT MAX(id) FROM vehicles")
     int getLastInsertedId();
 }
+
