@@ -12,10 +12,10 @@ import androidx.room.PrimaryKey;
         foreignKeys = @ForeignKey(
                 entity = Vehicle.class,
                 parentColumns = "id",
-                childColumns = "vehicleId",
+                childColumns = "vehicle_id", // <-- must match @ColumnInfo below
                 onDelete = ForeignKey.CASCADE
         ),
-        indices = {@Index("vehicleId")}
+        indices = {@Index("vehicle_id")} // <-- same here
 )
 public class MaintenanceRecord {
 
@@ -33,7 +33,7 @@ public class MaintenanceRecord {
     @ColumnInfo(name = "alerts_enabled")
     public boolean alertsEnabled;
 
-    @ColumnInfo(name = "vehicle_id")
+    @ColumnInfo(name = "vehicle_id") // <-- must match childColumns in @ForeignKey
     public int vehicleId;
 
     public MaintenanceRecord() {

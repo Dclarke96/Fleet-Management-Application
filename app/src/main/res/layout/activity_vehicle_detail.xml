@@ -25,23 +25,23 @@
             android:layout_marginHorizontal="4dp"
             android:clipToPadding="false">
 
-            <!-- Title -->
+            <!-- Vehicle Name -->
             <EditText
                 android:id="@+id/editTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/vacation_title"
+                android:hint="Vehicle Name"
                 android:inputType="textCapWords"
                 android:padding="12dp"
                 android:textSize="16sp"
                 android:background="@android:drawable/edit_text" />
 
-            <!-- Hotel -->
+            <!-- Vehicle Location / Garage -->
             <EditText
-                android:id="@+id/editHotel"
+                android:id="@+id/editLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/hotel_or_place_to_stay"
+                android:hint="Location / Garage"
                 android:inputType="textCapWords"
                 android:padding="12dp"
                 android:textSize="16sp"
@@ -53,7 +53,7 @@
                 android:id="@+id/editStartDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/start_date_yyyy_mm_dd"
+                android:hint="Start Date (YYYY-MM-DD)"
                 android:focusable="false"
                 android:padding="12dp"
                 android:textSize="16sp"
@@ -65,7 +65,7 @@
                 android:id="@+id/editEndDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/end_date_yyyy_mm_dd"
+                android:hint="End Date (YYYY-MM-DD)"
                 android:focusable="false"
                 android:padding="12dp"
                 android:textSize="16sp"
@@ -82,17 +82,17 @@
                 android:layout_marginTop="12dp" />
         </LinearLayout>
 
-        <!-- Excursion Section -->
+        <!-- Maintenance Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Excursions"
+            android:text="Maintenance Records"
             android:textStyle="bold"
             android:textSize="18sp"
             android:layout_marginBottom="4dp" />
 
         <ListView
-            android:id="@+id/excursionList"
+            android:id="@+id/maintenanceList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp" />
@@ -105,19 +105,19 @@
             android:layout_marginBottom="16dp">
 
             <Button
-                android:id="@+id/btnAddExcursion"
+                android:id="@+id/btnAddMaintenance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Add Excursion"
+                android:text="Add Maintenance"
                 android:layout_marginEnd="8dp" />
 
             <Button
-                android:id="@+id/btnManageExcursions"
+                android:id="@+id/btnManageMaintenance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Manage Excursions"
+                android:text="Manage Maintenance"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
@@ -126,7 +126,7 @@
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/save_vacation"
+            android:text="Save Vehicle"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
@@ -134,7 +134,7 @@
             android:id="@+id/btnDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/delete_vacation"
+            android:text="Delete Vehicle"
             android:textSize="16sp"
             android:layout_marginBottom="8dp"
             android:visibility="gone" />
@@ -143,7 +143,7 @@
             android:id="@+id/btnShare"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Share Vacation"
+            android:text="Share Vehicle Info"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 

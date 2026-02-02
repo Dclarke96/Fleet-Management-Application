@@ -10,16 +10,16 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vacation Scheduler"
+        android:text="Fleet Management"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginBottom="24dp" />
 
     <Button
-        android:id="@+id/btnGoToVacations"
+        android:id="@+id/btnGoToVehicles"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="VIEW VACATIONS"
+        android:text="VIEW VEHICLES"
         android:textAllCaps="true"
         android:textStyle="bold"
         android:textColor="@android:color/white"
