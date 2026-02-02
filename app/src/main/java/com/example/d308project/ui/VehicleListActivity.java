@@ -5,7 +5,11 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.d308project.R;
 import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.Vehicle;
@@ -14,7 +18,7 @@ import java.util.List;
 
 public class VehicleListActivity extends AppCompatActivity {
 
-    private ListView vacationListView;
+    private ListView vehicleListView;
     private AppDatabase db;
 
     private List<Vehicle> vehicles;
@@ -22,24 +26,26 @@ public class VehicleListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_vacation_list);
+        setContentView(R.layout.activity_vehicle_list);
 
         db = AppDatabase.getInstance(getApplicationContext());
 
-        vacationListView = findViewById(R.id.vacation_list_view);
+        vehicleListView = findViewById(R.id.vehicle_list_view);
 
-        Button btnAddVacation = findViewById(R.id.btnAddVacation);
-        btnAddVacation.setOnClickListener(view -> startActivity(new Intent(this, VehicleDetailActivity.class)));
+        Button btnAddVehicle = findViewById(R.id.btnAddVehicle);
+        btnAddVehicle.setOnClickListener(view ->
+                startActivity(new Intent(this, VehicleDetailActivity.class))
+        );
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadVacations();
+        loadVehicles();
     }
 
-    private void loadVacations() {
-        vehicles = db.vacationDao().getAllVacations();
+    private void loadVehicles() {
+        vehicles = db.vehicleDao().getAllVehicles();
 
         ArrayAdapter<Vehicle> adapter = new ArrayAdapter<>(
                 this,
@@ -47,22 +53,23 @@ public class VehicleListActivity extends AppCompatActivity {
                 vehicles
         );
 
-        vacationListView.setAdapter(adapter);
+        vehicleListView.setAdapter(adapter);
 
-        vacationListView.setOnItemClickListener((parent, view, position, id) -> {
+        vehicleListView.setOnItemClickListener((parent, view, position, id) -> {
             Vehicle selectedVehicle = vehicles.get(position);
             Intent intent = new Intent(this, VehicleDetailActivity.class);
-            intent.putExtra("vacationId", selectedVehicle.id);
+            intent.putExtra("vehicleId", selectedVehicle.id);
             startActivity(intent);
         });
 
-        vacationListView.setOnItemLongClickListener((parent, view, position, id) -> {
+        vehicleListView.setOnItemLongClickListener((parent, view, position, id) -> {
             Vehicle selectedVehicle = vehicles.get(position);
 
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Delete Vacation")
-                    .setMessage("Are you sure you want to delete this vacation?")
-                    .setPositiveButton("Delete", (dialog, which) -> attemptDeleteVacation(selectedVehicle))
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Vehicle")
+                    .setMessage("Are you sure you want to delete this vehicle?")
+                    .setPositiveButton("Delete", (dialog, which) ->
+                            attemptDeleteVehicle(selectedVehicle))
                     .setNegativeButton("Cancel", null)
                     .show();
 
@@ -70,20 +77,20 @@ public class VehicleListActivity extends AppCompatActivity {
         });
     }
 
-    private void attemptDeleteVacation(Vehicle vehicle) {
-        int excursionCount = db.excursionDao().countExcursionsForVacation(vehicle.id);
+    private void attemptDeleteVehicle(Vehicle vehicle) {
+        int maintenanceCount =
+                db.maintenanceDao().countMaintenanceForVehicle(vehicle.id);
 
-        if (excursionCount > 0) {
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Cannot Delete Vacation")
-                    .setMessage("This vacation has excursions. Delete them first.")
+        if (maintenanceCount > 0) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Cannot Delete Vehicle")
+                    .setMessage("This vehicle has maintenance records. Delete them first.")
                     .setPositiveButton("OK", null)
                     .show();
         } else {
-            db.vacationDao().deleteVacation(vehicle);
-            loadVacations();
-            android.widget.Toast.makeText(this, "Vacation deleted", android.widget.Toast.LENGTH_SHORT).show();
+            db.vehicleDao().deleteVehicle(vehicle);
+            loadVehicles();
+            Toast.makeText(this, "Vehicle deleted", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

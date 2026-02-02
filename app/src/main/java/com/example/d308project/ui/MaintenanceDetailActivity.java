@@ -26,44 +26,36 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     private Switch switchAlert;
     private Button btnSave, btnBack;
     private AppDatabase db;
-    private int vacationId;
-    private int excursionId = -1;
+    private int vehicleId;
+    private int maintenanceId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_excursion_detail);
+        setContentView(R.layout.activity_maintenance_detail); // Updated layout name
 
-        editTitle = findViewById(R.id.editExcursionTitle);
-        editDate = findViewById(R.id.editExcursionDate);
+        editTitle = findViewById(R.id.editMaintenanceTitle);
+        editDate = findViewById(R.id.editMaintenanceDate);
         switchAlert = findViewById(R.id.switchAlert);
-        btnSave = findViewById(R.id.btnSaveExcursion);
+        btnSave = findViewById(R.id.btnSaveMaintenance);
         btnBack = findViewById(R.id.backButton);
 
         db = AppDatabase.getInstance(getApplicationContext());
 
-        if (getIntent().hasExtra("vacationId")) {
-            vacationId = getIntent().getIntExtra("vacationId", -1);
+        if (getIntent().hasExtra("vehicleId")) {
+            vehicleId = getIntent().getIntExtra("vehicleId", -1);
         }
 
-        if (getIntent().hasExtra("excursionId")) {
-            excursionId = getIntent().getIntExtra("excursionId", -1);
-            loadExcursion();
+        if (getIntent().hasExtra("maintenanceId")) {
+            maintenanceId = getIntent().getIntExtra("maintenanceId", -1);
+            loadMaintenance();
         }
 
-        btnSave.setOnClickListener(v -> {
-            saveExcursion();
-        });
-
+        btnSave.setOnClickListener(v -> saveMaintenance());
         btnBack.setOnClickListener(v -> finish());
 
         Calendar calendar = Calendar.getInstance();
-
         DatePickerDialog.OnDateSetListener dateSetListener = (view, year, month, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, month);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
             String formattedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth);
             editDate.setText(formattedDate);
         };
@@ -79,16 +71,16 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void loadExcursion() {
-        MaintenanceRecord maintenanceRecord = db.excursionDao().getExcursionById(excursionId);
-        if (maintenanceRecord != null) {
-            editTitle.setText(maintenanceRecord.title);
-            editDate.setText(maintenanceRecord.date);
-            switchAlert.setChecked(maintenanceRecord.alertsEnabled);
+    private void loadMaintenance() {
+        MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
+        if (record != null) {
+            editTitle.setText(record.title);
+            editDate.setText(record.date);
+            switchAlert.setChecked(record.alertsEnabled);
         }
     }
 
-    private void saveExcursion() {
+    private void saveMaintenance() {
         String title = editTitle.getText().toString().trim();
         String date = editDate.getText().toString().trim();
         boolean alertsEnabled = switchAlert.isChecked();
@@ -103,28 +95,21 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Validate date within vehicle range
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         try {
-            Date excursionDate = sdf.parse(date);
-            if (excursionDate == null) throw new ParseException("Null parsed date", 0);
-
-            // Fetch the parent vacation and validate the date range
-            Vehicle vehicle = db.vacationDao().getVacationById(vacationId);
+            Date maintenanceDate = sdf.parse(date);
+            Vehicle vehicle = db.vehicleDao().getVehicleById(vehicleId); // updated DAO
             if (vehicle == null) {
-                Toast.makeText(this, "Parent vacation not found.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Parent vehicle not found.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             Date startDate = sdf.parse(vehicle.startDate);
             Date endDate = sdf.parse(vehicle.endDate);
 
-            if (startDate == null || endDate == null) {
-                Toast.makeText(this, "Invalid vacation date range.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (excursionDate.before(startDate) || excursionDate.after(endDate)) {
-                Toast.makeText(this, "Excursion must be within the vacation dates: "
+            if (maintenanceDate.before(startDate) || maintenanceDate.after(endDate)) {
+                Toast.makeText(this, "Maintenance must be within vehicle dates: "
                         + vehicle.startDate + " to " + vehicle.endDate, Toast.LENGTH_LONG).show();
                 return;
             }
@@ -134,25 +119,30 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
             return;
         }
 
-        if (excursionId == -1) {
-            // New excursion
-            MaintenanceRecord newMaintenanceRecord = new MaintenanceRecord();
-            newMaintenanceRecord.vacationOwnerId = vacationId;
-            newMaintenanceRecord.title = title;
-            newMaintenanceRecord.date = date;
-            db.excursionDao().insertExcursion(newMaintenanceRecord);
+        if (maintenanceId == -1) {
+            // Insert new maintenance record
+            MaintenanceRecord newRecord = new MaintenanceRecord();
+            newRecord.vehicleOwnerId = vehicleId;
+            newRecord.title = title;
+            newRecord.date = date;
+            newRecord.alertsEnabled = alertsEnabled;
+            db.maintenanceDao().insertMaintenance(newRecord);
         } else {
-            // Update existing
-            MaintenanceRecord existing = db.excursionDao().getExcursionById(excursionId);
+            // Update existing record
+            MaintenanceRecord existing = db.maintenanceDao().getMaintenanceById(maintenanceId);
             if (existing != null) {
                 existing.title = title;
                 existing.date = date;
-                db.excursionDao().updateExcursion(existing);
+                existing.alertsEnabled = alertsEnabled;
+                db.maintenanceDao().updateMaintenance(existing);
             }
         }
 
-        scheduleExcursionAlert(title, date);
-        Toast.makeText(this, "Excursion saved", Toast.LENGTH_SHORT).show();
+        if (alertsEnabled) {
+            scheduleMaintenanceAlert(title, date);
+        }
+
+        Toast.makeText(this, "Maintenance saved", Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -167,25 +157,16 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void scheduleExcursionAlert(String title, String dateStr) {
+    private void scheduleMaintenanceAlert(String title, String dateStr) {
         long triggerTime = parseDateToMillis(dateStr);
-
-        Calendar nowCal = Calendar.getInstance();
-        nowCal.set(Calendar.HOUR_OF_DAY, 0);
-        nowCal.set(Calendar.MINUTE, 0);
-        nowCal.set(Calendar.SECOND, 0);
-        nowCal.set(Calendar.MILLISECOND, 0);
-        long todayMidnight = nowCal.getTimeInMillis();
-
-        if (triggerTime < todayMidnight) {
+        if (triggerTime < System.currentTimeMillis()) {
             Toast.makeText(this, "Alert date must not be in the past", Toast.LENGTH_SHORT).show();
             return;
         }
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
         Intent intent = new Intent(this, MaintenanceAlertReceiver.class);
-        intent.putExtra("excursionTitle", title);
+        intent.putExtra("maintenanceTitle", title);
 
         int requestCode = title.hashCode();
 
@@ -199,17 +180,14 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         if (alarmManager != null) {
             alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
         }
-
-        Toast.makeText(this, "Alert set for excursion", Toast.LENGTH_SHORT).show();
     }
 
     private long parseDateToMillis(String dateStr) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            sdf.setLenient(false);
             Date date = sdf.parse(dateStr);
             return date != null ? date.getTime() : -1;
-        } catch (Exception e) {
+        } catch (ParseException e) {
             return -1;
         }
     }
