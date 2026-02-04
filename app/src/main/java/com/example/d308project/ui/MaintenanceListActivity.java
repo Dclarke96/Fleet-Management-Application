@@ -64,19 +64,19 @@ public class MaintenanceListActivity extends AppCompatActivity {
             Button btnEdit = item.findViewById(R.id.btnEditMaintenance);
             Button btnDelete = item.findViewById(R.id.btnDeleteMaintenance);
 
-            // Updated field names
-            txtDescription.setText(record.description);
-            txtDate.setText(record.serviceDate);
+            // Display data
+            txtDescription.setText(record.getDescription());
+            txtDate.setText(record.getServiceDate());
 
             btnEdit.setOnClickListener(v -> {
                 Intent intent = new Intent(this, MaintenanceDetailActivity.class);
-                intent.putExtra("maintenanceId", record.id);
+                intent.putExtra("maintenanceId", record.getId());
                 intent.putExtra("vehicleId", vehicleId);
                 startActivity(intent);
             });
 
             btnDelete.setOnClickListener(v -> {
-                db.maintenanceDao().deleteMaintenanceById(record.id);
+                db.maintenanceDao().deleteMaintenanceById(record.getId());
                 loadMaintenanceRecords();
             });
 

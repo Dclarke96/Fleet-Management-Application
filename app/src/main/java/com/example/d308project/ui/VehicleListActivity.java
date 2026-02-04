@@ -58,7 +58,8 @@ public class VehicleListActivity extends AppCompatActivity {
         vehicleListView.setOnItemClickListener((parent, view, position, id) -> {
             Vehicle selectedVehicle = vehicles.get(position);
             Intent intent = new Intent(this, VehicleDetailActivity.class);
-            intent.putExtra("vehicleId", selectedVehicle.id);
+            // ✅ Use getter for protected ID
+            intent.putExtra("vehicleId", selectedVehicle.getId());
             startActivity(intent);
         });
 
@@ -79,7 +80,7 @@ public class VehicleListActivity extends AppCompatActivity {
 
     private void attemptDeleteVehicle(Vehicle vehicle) {
         int maintenanceCount =
-                db.maintenanceDao().countMaintenanceForVehicle(vehicle.id);
+                db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId()); // ✅ getter
 
         if (maintenanceCount > 0) {
             new AlertDialog.Builder(this)

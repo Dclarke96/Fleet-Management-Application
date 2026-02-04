@@ -29,8 +29,7 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     private int vehicleId;
     private int maintenanceId = -1;
 
-    private final SimpleDateFormat sdf =
-            new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,13 +75,11 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     }
 
     private void loadMaintenance() {
-        MaintenanceRecord record =
-                db.maintenanceDao().getMaintenanceById(maintenanceId);
-
+        MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
         if (record != null) {
-            editDescription.setText(record.description);
-            editDate.setText(record.serviceDate);
-            switchAlert.setChecked(record.alertsEnabled);
+            editDescription.setText(record.getDescription());
+            editDate.setText(record.getServiceDate());
+            switchAlert.setChecked(record.isAlertsEnabled());
         }
     }
 
@@ -124,18 +121,17 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
 
         if (maintenanceId == -1) {
             MaintenanceRecord record = new MaintenanceRecord();
-            record.vehicleId = vehicleId;
-            record.description = description;
-            record.serviceDate = serviceDate;
-            record.alertsEnabled = alertsEnabled;
+            record.setVehicleId(vehicleId);
+            record.setDescription(description);
+            record.setServiceDate(serviceDate);
+            record.setAlertsEnabled(alertsEnabled);
             db.maintenanceDao().insertMaintenance(record);
         } else {
-            MaintenanceRecord record =
-                    db.maintenanceDao().getMaintenanceById(maintenanceId);
+            MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
             if (record != null) {
-                record.description = description;
-                record.serviceDate = serviceDate;
-                record.alertsEnabled = alertsEnabled;
+                record.setDescription(description);
+                record.setServiceDate(serviceDate);
+                record.setAlertsEnabled(alertsEnabled);
                 db.maintenanceDao().updateMaintenance(record);
             }
         }
