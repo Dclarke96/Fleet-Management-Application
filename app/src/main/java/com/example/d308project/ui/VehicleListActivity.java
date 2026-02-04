@@ -2,8 +2,11 @@ package com.example.d308project.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -19,9 +22,10 @@ import java.util.List;
 public class VehicleListActivity extends AppCompatActivity {
 
     private ListView vehicleListView;
+    private EditText editSearchVehicle;
     private AppDatabase db;
-
     private List<Vehicle> vehicles;
+    private ArrayAdapter<Vehicle> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +35,26 @@ public class VehicleListActivity extends AppCompatActivity {
         db = AppDatabase.getInstance(getApplicationContext());
 
         vehicleListView = findViewById(R.id.vehicle_list_view);
-
+        editSearchVehicle = findViewById(R.id.editSearchVehicle);
         Button btnAddVehicle = findViewById(R.id.btnAddVehicle);
+
         btnAddVehicle.setOnClickListener(view ->
                 startActivity(new Intent(this, VehicleDetailActivity.class))
         );
+
+        // ✅ Listen for search input
+        editSearchVehicle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterVehicles(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
     }
 
     @Override
@@ -47,7 +66,7 @@ public class VehicleListActivity extends AppCompatActivity {
     private void loadVehicles() {
         vehicles = db.vehicleDao().getAllVehicles();
 
-        ArrayAdapter<Vehicle> adapter = new ArrayAdapter<>(
+        adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
                 vehicles
@@ -56,31 +75,40 @@ public class VehicleListActivity extends AppCompatActivity {
         vehicleListView.setAdapter(adapter);
 
         vehicleListView.setOnItemClickListener((parent, view, position, id) -> {
-            Vehicle selectedVehicle = vehicles.get(position);
-            Intent intent = new Intent(this, VehicleDetailActivity.class);
-            // ✅ Use getter for protected ID
-            intent.putExtra("vehicleId", selectedVehicle.getId());
-            startActivity(intent);
+            Vehicle selectedVehicle = adapter.getItem(position);
+            if (selectedVehicle != null) {
+                Intent intent = new Intent(this, VehicleDetailActivity.class);
+                intent.putExtra("vehicleId", selectedVehicle.getId());
+                startActivity(intent);
+            }
         });
 
         vehicleListView.setOnItemLongClickListener((parent, view, position, id) -> {
-            Vehicle selectedVehicle = vehicles.get(position);
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Delete Vehicle")
-                    .setMessage("Are you sure you want to delete this vehicle?")
-                    .setPositiveButton("Delete", (dialog, which) ->
-                            attemptDeleteVehicle(selectedVehicle))
-                    .setNegativeButton("Cancel", null)
-                    .show();
-
+            Vehicle selectedVehicle = adapter.getItem(position);
+            if (selectedVehicle != null) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Delete Vehicle")
+                        .setMessage("Are you sure you want to delete this vehicle?")
+                        .setPositiveButton("Delete", (dialog, which) ->
+                                attemptDeleteVehicle(selectedVehicle))
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
             return true;
         });
     }
 
+    private void filterVehicles(String query) {
+        String searchTerm = "%" + query.trim() + "%";
+        vehicles = db.vehicleDao().searchVehicles(searchTerm);
+        adapter.clear();
+        adapter.addAll(vehicles);
+        adapter.notifyDataSetChanged();
+    }
+
     private void attemptDeleteVehicle(Vehicle vehicle) {
         int maintenanceCount =
-                db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId()); // ✅ getter
+                db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId());
 
         if (maintenanceCount > 0) {
             new AlertDialog.Builder(this)

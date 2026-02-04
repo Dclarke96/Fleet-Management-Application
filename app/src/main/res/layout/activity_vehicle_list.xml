@@ -16,6 +16,16 @@
         android:textStyle="bold"
         android:paddingBottom="8dp"/>
 
+    <!-- ✅ Search box for vehicles -->
+    <EditText
+        android:id="@+id/editSearchVehicle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search vehicles by make, model, or license"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"
+        android:inputType="text" />
+
     <ListView
         android:id="@+id/vehicle_list_view"
         android:layout_width="match_parent"
