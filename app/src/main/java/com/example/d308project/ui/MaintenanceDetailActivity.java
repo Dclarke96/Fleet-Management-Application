@@ -29,10 +29,13 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     private int vehicleId;
     private int maintenanceId = -1;
 
+    private final SimpleDateFormat sdf =
+            new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maintenance_detail); // Updated layout name
+        setContentView(R.layout.activity_maintenance_detail);
 
         editDescription = findViewById(R.id.editMaintenanceTitle);
         editDate = findViewById(R.id.editMaintenanceDate);
@@ -55,24 +58,27 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         Calendar calendar = Calendar.getInstance();
-        DatePickerDialog.OnDateSetListener dateSetListener = (view, year, month, dayOfMonth) -> {
-            String formattedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth);
-            editDate.setText(formattedDate);
-        };
+        DatePickerDialog.OnDateSetListener dateSetListener =
+                (view, year, month, day) ->
+                        editDate.setText(String.format(
+                                Locale.US, "%04d-%02d-%02d",
+                                year, month + 1, day));
 
-        editDate.setOnClickListener(v -> {
-            new DatePickerDialog(
-                    MaintenanceDetailActivity.this,
-                    dateSetListener,
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-            ).show();
-        });
+        editDate.setOnClickListener(v ->
+                new DatePickerDialog(
+                        this,
+                        dateSetListener,
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+        );
     }
 
     private void loadMaintenance() {
-        MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
+        MaintenanceRecord record =
+                db.maintenanceDao().getMaintenanceById(maintenanceId);
+
         if (record != null) {
             editDescription.setText(record.description);
             editDate.setText(record.serviceDate);
@@ -86,55 +92,51 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         boolean alertsEnabled = switchAlert.isChecked();
 
         if (description.isEmpty() || serviceDate.isEmpty()) {
-            Toast.makeText(this, "Description and date are required", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "Description and date are required",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!isValidDate(serviceDate)) {
-            Toast.makeText(this, "Invalid date format. Use yyyy-MM-dd.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "Invalid date format (yyyy-MM-dd)",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Validate date within vehicle range
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        try {
-            Date maintenanceDate = sdf.parse(serviceDate);
-            Vehicle vehicle = db.vehicleDao().getVehicleById(vehicleId);
-            if (vehicle == null) {
-                Toast.makeText(this, "Parent vehicle not found.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        Vehicle vehicle = db.vehicleDao().getVehicleById(vehicleId);
+        if (vehicle == null) {
+            Toast.makeText(this,
+                    "Vehicle not found",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            Date startDate = sdf.parse(vehicle.startDate);
-            Date endDate = sdf.parse(vehicle.endDate);
-
-            if (maintenanceDate.before(startDate) || maintenanceDate.after(endDate)) {
-                Toast.makeText(this, "Maintenance must be within vehicle dates: "
-                        + vehicle.startDate + " to " + vehicle.endDate, Toast.LENGTH_LONG).show();
-                return;
-            }
-
-        } catch (ParseException e) {
-            Toast.makeText(this, "Date parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        if (!isServiceDateWithinVehicle(serviceDate, vehicle)) {
+            Toast.makeText(
+                    this,
+                    "Maintenance date must be within vehicle start/end dates",
+                    Toast.LENGTH_LONG
+            ).show();
             return;
         }
 
         if (maintenanceId == -1) {
-            // Insert new maintenance record
-            MaintenanceRecord newRecord = new MaintenanceRecord();
-            newRecord.vehicleId = vehicleId;
-            newRecord.description = description;
-            newRecord.serviceDate = serviceDate;
-            newRecord.alertsEnabled = alertsEnabled;
-            db.maintenanceDao().insertMaintenance(newRecord);
+            MaintenanceRecord record = new MaintenanceRecord();
+            record.vehicleId = vehicleId;
+            record.description = description;
+            record.serviceDate = serviceDate;
+            record.alertsEnabled = alertsEnabled;
+            db.maintenanceDao().insertMaintenance(record);
         } else {
-            // Update existing record
-            MaintenanceRecord existing = db.maintenanceDao().getMaintenanceById(maintenanceId);
-            if (existing != null) {
-                existing.description = description;
-                existing.serviceDate = serviceDate;
-                existing.alertsEnabled = alertsEnabled;
-                db.maintenanceDao().updateMaintenance(existing);
+            MaintenanceRecord record =
+                    db.maintenanceDao().getMaintenanceById(maintenanceId);
+            if (record != null) {
+                record.description = description;
+                record.serviceDate = serviceDate;
+                record.alertsEnabled = alertsEnabled;
+                db.maintenanceDao().updateMaintenance(record);
             }
         }
 
@@ -142,12 +144,34 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
             scheduleMaintenanceAlert(description, serviceDate);
         }
 
-        Toast.makeText(this, "Maintenance saved", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,
+                "Maintenance saved",
+                Toast.LENGTH_SHORT).show();
         finish();
     }
 
+    private boolean isServiceDateWithinVehicle(String serviceDate, Vehicle vehicle) {
+        try {
+            Date service = sdf.parse(serviceDate);
+            Date start = sdf.parse(vehicle.startDate);
+
+            if (service.before(start)) {
+                return false;
+            }
+
+            if (vehicle.endDate != null && !vehicle.endDate.isEmpty()) {
+                Date end = sdf.parse(vehicle.endDate);
+                return !service.after(end);
+            }
+
+            return true; // No end date = active vehicle
+
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
     private boolean isValidDate(String dateStr) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         sdf.setLenient(false);
         try {
             sdf.parse(dateStr);
@@ -159,32 +183,41 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
 
     private void scheduleMaintenanceAlert(String description, String serviceDate) {
         long triggerTime = parseDateToMillis(serviceDate);
+
         if (triggerTime < System.currentTimeMillis()) {
-            Toast.makeText(this, "Alert date must not be in the past", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "Alert date must not be in the past",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, MaintenanceAlertReceiver.class);
+        AlarmManager alarmManager =
+                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent =
+                new Intent(this, MaintenanceAlertReceiver.class);
         intent.putExtra("maintenanceDescription", description);
 
-        int requestCode = description.hashCode();
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(
+                        this,
+                        description.hashCode(),
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT |
+                                PendingIntent.FLAG_IMMUTABLE
+                );
 
         if (alarmManager != null) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+            alarmManager.set(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+            );
         }
     }
 
     private long parseDateToMillis(String dateStr) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             Date date = sdf.parse(dateStr);
             return date != null ? date.getTime() : -1;
         } catch (ParseException e) {
