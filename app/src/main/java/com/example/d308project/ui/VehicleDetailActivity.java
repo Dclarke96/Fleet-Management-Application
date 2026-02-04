@@ -7,8 +7,8 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.d308project.R;
-import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.Vehicle;
+import com.example.d308project.data.VehicleRepository;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -17,10 +17,9 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
     private EditText editTitle, editLocation, editStartDate, editEndDate;
     private Switch switchAlert;
-    private Button btnSave, btnDelete, btnShare, btnBack;
-    private Button btnAddMaintenance, btnManageMaintenance;
+    private Button btnSave, btnBack, btnAddMaintenance, btnManageMaintenance;
 
-    private AppDatabase db;
+    private VehicleRepository vehicleRepo;
     private int vehicleId = -1;
 
     @Override
@@ -36,13 +35,12 @@ public class VehicleDetailActivity extends AppCompatActivity {
         switchAlert = findViewById(R.id.switchAlert);
 
         btnSave = findViewById(R.id.btnSave);
-        btnDelete = findViewById(R.id.btnDelete);
-        btnShare = findViewById(R.id.btnShare);
         btnBack = findViewById(R.id.btnBack);
         btnAddMaintenance = findViewById(R.id.btnAddMaintenance);
         btnManageMaintenance = findViewById(R.id.btnManageMaintenance);
 
-        db = AppDatabase.getInstance(getApplicationContext());
+        // Initialize repository
+        vehicleRepo = new VehicleRepository(getApplicationContext());
 
         // Check if editing existing vehicle
         if (getIntent().hasExtra("vehicleId")) {
@@ -54,26 +52,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         // Date picker setup
         Calendar calendar = Calendar.getInstance();
-
-        editStartDate.setOnClickListener(v -> new DatePickerDialog(
-                this,
-                (view, year, month, day) ->
-                        editStartDate.setText(String.format(
-                                Locale.US, "%04d-%02d-%02d", year, month + 1, day)),
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        ).show());
-
-        editEndDate.setOnClickListener(v -> new DatePickerDialog(
-                this,
-                (view, year, month, day) ->
-                        editEndDate.setText(String.format(
-                                Locale.US, "%04d-%02d-%02d", year, month + 1, day)),
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        ).show());
+        editStartDate.setOnClickListener(v -> showDatePicker(editStartDate, calendar));
+        editEndDate.setOnClickListener(v -> showDatePicker(editEndDate, calendar));
 
         // Button listeners
         btnSave.setOnClickListener(v -> saveVehicle());
@@ -100,15 +80,27 @@ public class VehicleDetailActivity extends AppCompatActivity {
         });
     }
 
+    private void showDatePicker(EditText editText, Calendar calendar) {
+        new DatePickerDialog(
+                this,
+                (view, year, month, day) -> editText.setText(
+                        String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)
+                ),
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
     private void loadVehicle() {
-        Vehicle vehicle = db.vehicleDao().getVehicleById(vehicleId);
+        Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
         if (vehicle == null) return;
 
-        editTitle.setText(vehicle.make + " " + vehicle.model);
-        editLocation.setText(vehicle.licensePlate);
-        editStartDate.setText(vehicle.startDate);
-        editEndDate.setText(vehicle.endDate);
-        switchAlert.setChecked(vehicle.maintenanceAlertsEnabled);
+        editTitle.setText(vehicle.getMake() + " " + vehicle.getModel());
+        editLocation.setText(vehicle.getLicensePlate());
+        editStartDate.setText(vehicle.getStartDate());
+        editEndDate.setText(vehicle.getEndDate());
+        switchAlert.setChecked(vehicle.isMaintenanceAlertsEnabled());
     }
 
     private void saveVehicle() {
@@ -126,22 +118,26 @@ public class VehicleDetailActivity extends AppCompatActivity {
         if (vehicleId == -1) {
             vehicle = new Vehicle();
         } else {
-            vehicle = db.vehicleDao().getVehicleById(vehicleId);
+            vehicle = vehicleRepo.getVehicleById(vehicleId);
             if (vehicle == null) vehicle = new Vehicle();
         }
 
+        // Split title into make and model
         String[] parts = title.split(" ", 2);
-        vehicle.make = parts.length > 0 ? parts[0] : "";
-        vehicle.model = parts.length > 1 ? parts[1] : "";
-        vehicle.licensePlate = location;
-        vehicle.startDate = startDate;
-        vehicle.endDate = endDate;
-        vehicle.maintenanceAlertsEnabled = switchAlert.isChecked();
+        vehicle.setMake(parts.length > 0 ? parts[0] : "");
+        vehicle.setModel(parts.length > 1 ? parts[1] : "");
+        vehicle.setLicensePlate(location);
+        vehicle.setStartDate(startDate);
+        vehicle.setEndDate(endDate);
+        vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
+        // Save via repository
         if (vehicleId == -1) {
-            vehicleId = (int) db.vehicleDao().insertVehicle(vehicle);
+            int newId = vehicleRepo.addVehicle(vehicle, this); // ✅ Pass Context
+            if (newId == -1) return; // validation failed
+            vehicleId = newId;
         } else {
-            db.vehicleDao().updateVehicle(vehicle);
+            vehicleRepo.updateVehicle(vehicle, this); // ✅ Pass Context
         }
 
         Toast.makeText(this, "Vehicle saved", Toast.LENGTH_SHORT).show();

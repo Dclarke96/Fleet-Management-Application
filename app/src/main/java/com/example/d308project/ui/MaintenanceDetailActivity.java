@@ -1,13 +1,17 @@
 package com.example.d308project.ui;
 
 import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-import android.app.DatePickerDialog;
+
+import com.example.d308project.R;
+import com.example.d308project.data.MaintenanceRecord;
+import com.example.d308project.data.MaintenanceRepository;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,17 +19,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import com.example.d308project.R;
-import com.example.d308project.data.AppDatabase;
-import com.example.d308project.data.MaintenanceRecord;
-import com.example.d308project.data.Vehicle;
-
 public class MaintenanceDetailActivity extends AppCompatActivity {
 
     private EditText editDescription, editDate;
     private Switch switchAlert;
     private Button btnSave, btnBack;
-    private AppDatabase db;
+
+    private MaintenanceRepository maintenanceRepo;
     private int vehicleId;
     private int maintenanceId = -1;
 
@@ -42,7 +42,7 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSaveMaintenance);
         btnBack = findViewById(R.id.backButton);
 
-        db = AppDatabase.getInstance(getApplicationContext());
+        maintenanceRepo = new MaintenanceRepository(getApplicationContext());
 
         if (getIntent().hasExtra("vehicleId")) {
             vehicleId = getIntent().getIntExtra("vehicleId", -1);
@@ -57,25 +57,23 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         Calendar calendar = Calendar.getInstance();
-        DatePickerDialog.OnDateSetListener dateSetListener =
-                (view, year, month, day) ->
-                        editDate.setText(String.format(
-                                Locale.US, "%04d-%02d-%02d",
-                                year, month + 1, day));
+        editDate.setOnClickListener(v -> showDatePicker(calendar));
+    }
 
-        editDate.setOnClickListener(v ->
-                new DatePickerDialog(
-                        this,
-                        dateSetListener,
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
-                ).show()
-        );
+    private void showDatePicker(Calendar calendar) {
+        new DatePickerDialog(
+                this,
+                (view, year, month, day) -> editDate.setText(
+                        String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)
+                ),
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show();
     }
 
     private void loadMaintenance() {
-        MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
+        MaintenanceRecord record = maintenanceRepo.getMaintenanceById(maintenanceId);
         if (record != null) {
             editDescription.setText(record.getDescription());
             editDate.setText(record.getServiceDate());
@@ -84,131 +82,60 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     }
 
     private void saveMaintenance() {
-        String description = editDescription.getText().toString().trim();
-        String serviceDate = editDate.getText().toString().trim();
-        boolean alertsEnabled = switchAlert.isChecked();
+        MaintenanceRecord record;
+        boolean isNew = maintenanceId == -1;
 
-        if (description.isEmpty() || serviceDate.isEmpty()) {
-            Toast.makeText(this,
-                    "Description and date are required",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!isValidDate(serviceDate)) {
-            Toast.makeText(this,
-                    "Invalid date format (yyyy-MM-dd)",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Vehicle vehicle = db.vehicleDao().getVehicleById(vehicleId);
-        if (vehicle == null) {
-            Toast.makeText(this,
-                    "Vehicle not found",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!isServiceDateWithinVehicle(serviceDate, vehicle)) {
-            Toast.makeText(
-                    this,
-                    "Maintenance date must be within vehicle start/end dates",
-                    Toast.LENGTH_LONG
-            ).show();
-            return;
-        }
-
-        if (maintenanceId == -1) {
-            MaintenanceRecord record = new MaintenanceRecord();
+        if (isNew) {
+            record = new MaintenanceRecord();
             record.setVehicleId(vehicleId);
-            record.setDescription(description);
-            record.setServiceDate(serviceDate);
-            record.setAlertsEnabled(alertsEnabled);
-            db.maintenanceDao().insertMaintenance(record);
         } else {
-            MaintenanceRecord record = db.maintenanceDao().getMaintenanceById(maintenanceId);
-            if (record != null) {
-                record.setDescription(description);
-                record.setServiceDate(serviceDate);
-                record.setAlertsEnabled(alertsEnabled);
-                db.maintenanceDao().updateMaintenance(record);
+            record = maintenanceRepo.getMaintenanceById(maintenanceId);
+            if (record == null) {
+                record = new MaintenanceRecord();
+                record.setVehicleId(vehicleId);
+                isNew = true;
             }
         }
 
-        if (alertsEnabled) {
-            scheduleMaintenanceAlert(description, serviceDate);
+        record.setDescription(editDescription.getText().toString().trim());
+        record.setServiceDate(editDate.getText().toString().trim());
+        record.setAlertsEnabled(switchAlert.isChecked());
+
+        // ✅ Use repository to handle validation and insertion/update
+        boolean success = isNew
+                ? maintenanceRepo.addMaintenance(record, this)
+                : maintenanceRepo.updateMaintenance(record, this);
+
+        if (!success) return; // validation failed, repository already shows Toast
+
+        if (record.isAlertsEnabled()) {
+            scheduleMaintenanceAlert(record.getDescription(), record.getServiceDate());
         }
 
-        Toast.makeText(this,
-                "Maintenance saved",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Maintenance saved", Toast.LENGTH_SHORT).show();
         finish();
-    }
-
-    private boolean isServiceDateWithinVehicle(String serviceDate, Vehicle vehicle) {
-        try {
-            Date service = sdf.parse(serviceDate);
-            Date start = sdf.parse(vehicle.startDate);
-
-            if (service.before(start)) {
-                return false;
-            }
-
-            if (vehicle.endDate != null && !vehicle.endDate.isEmpty()) {
-                Date end = sdf.parse(vehicle.endDate);
-                return !service.after(end);
-            }
-
-            return true; // No end date = active vehicle
-
-        } catch (ParseException e) {
-            return false;
-        }
-    }
-
-    private boolean isValidDate(String dateStr) {
-        sdf.setLenient(false);
-        try {
-            sdf.parse(dateStr);
-            return true;
-        } catch (ParseException e) {
-            return false;
-        }
     }
 
     private void scheduleMaintenanceAlert(String description, String serviceDate) {
         long triggerTime = parseDateToMillis(serviceDate);
-
         if (triggerTime < System.currentTimeMillis()) {
-            Toast.makeText(this,
-                    "Alert date must not be in the past",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Alert date must not be in the past", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        AlarmManager alarmManager =
-                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent =
-                new Intent(this, MaintenanceAlertReceiver.class);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, MaintenanceAlertReceiver.class);
         intent.putExtra("maintenanceDescription", description);
 
-        PendingIntent pendingIntent =
-                PendingIntent.getBroadcast(
-                        this,
-                        description.hashCode(),
-                        intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT |
-                                PendingIntent.FLAG_IMMUTABLE
-                );
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                description.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         if (alarmManager != null) {
-            alarmManager.set(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-            );
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
         }
     }
 
