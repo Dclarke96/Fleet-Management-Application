@@ -3,11 +3,15 @@ package com.example.d308project.data;
 import android.content.Context;
 import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class VehicleRepository {
 
     private final AppDatabase db;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     public VehicleRepository(Context context) {
         db = AppDatabase.getInstance(context);
@@ -25,20 +29,14 @@ public class VehicleRepository {
 
     // Add new vehicle, returns inserted ID or -1 on failure
     public int addVehicle(Vehicle vehicle, Context context) {
-        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty()) {
-            Toast.makeText(context, "Make and model are required", Toast.LENGTH_SHORT).show();
-            return -1;
-        }
+        if (!validateVehicle(vehicle, context)) return -1;
         long id = db.vehicleDao().insertVehicle(vehicle);
         return (int) id;
     }
 
     // Update existing vehicle, returns true if successful
     public boolean updateVehicle(Vehicle vehicle, Context context) {
-        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty()) {
-            Toast.makeText(context, "Make and model are required", Toast.LENGTH_SHORT).show();
-            return false;
-        }
+        if (!validateVehicle(vehicle, context)) return false;
         db.vehicleDao().updateVehicle(vehicle);
         return true;
     }
@@ -51,6 +49,33 @@ public class VehicleRepository {
             return false;
         }
         db.vehicleDao().deleteVehicle(vehicle);
+        return true;
+    }
+
+    // --------- Validation ---------
+    private boolean validateVehicle(Vehicle vehicle, Context context) {
+        // Check required fields
+        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty() || vehicle.getLocation().isEmpty()) {
+            Toast.makeText(context, "Make, model, and location are required", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check date formats
+        try {
+            sdf.setLenient(false);
+            sdf.parse(vehicle.getStartDate());
+
+            if (vehicle.getEndDate() != null && !vehicle.getEndDate().isEmpty()) {
+                if (sdf.parse(vehicle.getEndDate()).before(sdf.parse(vehicle.getStartDate()))) {
+                    Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+        } catch (ParseException e) {
+            Toast.makeText(context, "Invalid date format (yyyy-MM-dd)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
         return true;
     }
 }

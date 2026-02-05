@@ -5,6 +5,7 @@ import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,6 +18,7 @@ public class MaintenanceRepository {
         db = AppDatabase.getInstance(context);
     }
 
+    // Get maintenance records
     public List<MaintenanceRecord> getMaintenanceForVehicle(int vehicleId) {
         return db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
     }
@@ -29,18 +31,21 @@ public class MaintenanceRepository {
         return db.maintenanceDao().getMaintenanceById(id);
     }
 
+    // Add maintenance record
     public boolean addMaintenance(MaintenanceRecord record, Context context) {
         if (!validateRecord(record, context)) return false;
         db.maintenanceDao().insertMaintenance(record);
         return true;
     }
 
+    // Update maintenance record
     public boolean updateMaintenance(MaintenanceRecord record, Context context) {
         if (!validateRecord(record, context)) return false;
         db.maintenanceDao().updateMaintenance(record);
         return true;
     }
 
+    // Delete maintenance record
     public void deleteMaintenance(MaintenanceRecord record) {
         db.maintenanceDao().deleteMaintenance(record);
     }
@@ -53,39 +58,64 @@ public class MaintenanceRepository {
         return db.vehicleDao().getVehicleById(vehicleId);
     }
 
+    // --------- Validation ---------
     private boolean validateRecord(MaintenanceRecord record, Context context) {
-        if (record.getDescription().isEmpty() || record.getServiceDate().isEmpty()) {
-            Toast.makeText(context, "Description and date are required", Toast.LENGTH_SHORT).show();
+
+        // Required fields
+        if (record.getDescription() == null || record.getDescription().trim().isEmpty() ||
+                record.getServiceDate() == null || record.getServiceDate().trim().isEmpty()) {
+
+            Toast.makeText(context, "Description and service date are required", Toast.LENGTH_SHORT).show();
             return false;
         }
 
-        // Ensure date format is valid
+        // Minimum description length
+        if (record.getDescription().length() < 3) {
+            Toast.makeText(context, "Description must be at least 3 characters", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate service date format
+        Date serviceDate;
         try {
             sdf.setLenient(false);
-            sdf.parse(record.getServiceDate());
+            serviceDate = sdf.parse(record.getServiceDate());
         } catch (ParseException e) {
             Toast.makeText(context, "Invalid date format (yyyy-MM-dd)", Toast.LENGTH_SHORT).show();
             return false;
         }
 
+        // Prevent past dates
+        if (serviceDate.before(new Date())) {
+            Toast.makeText(context, "Service date cannot be in the past", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Vehicle must exist
         Vehicle vehicle = db.vehicleDao().getVehicleById(record.getVehicleId());
         if (vehicle == null) {
-            Toast.makeText(context, "Parent vehicle not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Associated vehicle not found", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         try {
-            if (sdf.parse(record.getServiceDate()).before(sdf.parse(vehicle.getStartDate()))) {
-                Toast.makeText(context, "Maintenance date cannot be before vehicle start date", Toast.LENGTH_SHORT).show();
+            Date startDate = sdf.parse(vehicle.getStartDate());
+
+            Date endDate = null;
+            if (vehicle.getEndDate() != null && !vehicle.getEndDate().isEmpty()) {
+                endDate = sdf.parse(vehicle.getEndDate());
+            }
+
+            if (serviceDate.before(startDate)) {
+                Toast.makeText(context, "Service date cannot be before vehicle start date", Toast.LENGTH_SHORT).show();
                 return false;
             }
 
-            if (vehicle.getEndDate() != null && !vehicle.getEndDate().isEmpty()) {
-                if (sdf.parse(record.getServiceDate()).after(sdf.parse(vehicle.getEndDate()))) {
-                    Toast.makeText(context, "Maintenance date cannot be after vehicle end date", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
+            if (endDate != null && serviceDate.after(endDate)) {
+                Toast.makeText(context, "Service date cannot be after vehicle end date", Toast.LENGTH_SHORT).show();
+                return false;
             }
+
         } catch (ParseException ignored) {}
 
         return true;

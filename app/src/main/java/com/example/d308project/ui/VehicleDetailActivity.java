@@ -29,7 +29,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         // Bind views
         editTitle = findViewById(R.id.editTitle);
-        editLocation = findViewById(R.id.editLocation);
+        editLocation = findViewById(R.id.editLocation); // location field
         editStartDate = findViewById(R.id.editStartDate);
         editEndDate = findViewById(R.id.editEndDate);
         switchAlert = findViewById(R.id.switchAlert);
@@ -97,7 +97,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         if (vehicle == null) return;
 
         editTitle.setText(vehicle.getMake() + " " + vehicle.getModel());
-        editLocation.setText(vehicle.getLicensePlate());
+        editLocation.setText(vehicle.getLocation()); // ✅ updated
         editStartDate.setText(vehicle.getStartDate());
         editEndDate.setText(vehicle.getEndDate());
         switchAlert.setChecked(vehicle.isMaintenanceAlertsEnabled());
@@ -126,18 +126,18 @@ public class VehicleDetailActivity extends AppCompatActivity {
         String[] parts = title.split(" ", 2);
         vehicle.setMake(parts.length > 0 ? parts[0] : "");
         vehicle.setModel(parts.length > 1 ? parts[1] : "");
-        vehicle.setLicensePlate(location);
+        vehicle.setLocation(location); // ✅ updated
         vehicle.setStartDate(startDate);
         vehicle.setEndDate(endDate);
         vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
         // Save via repository
         if (vehicleId == -1) {
-            int newId = vehicleRepo.addVehicle(vehicle, this); // ✅ Pass Context
+            int newId = vehicleRepo.addVehicle(vehicle, this); // ✅ validation with Context
             if (newId == -1) return; // validation failed
             vehicleId = newId;
         } else {
-            vehicleRepo.updateVehicle(vehicle, this); // ✅ Pass Context
+            vehicleRepo.updateVehicle(vehicle, this); // ✅ validation with Context
         }
 
         Toast.makeText(this, "Vehicle saved", Toast.LENGTH_SHORT).show();

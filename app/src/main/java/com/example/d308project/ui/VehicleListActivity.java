@@ -48,7 +48,7 @@ public class VehicleListActivity extends AppCompatActivity {
                 startActivity(new Intent(this, VehicleDetailActivity.class))
         );
 
-        // ✅ Listen for search input
+        // Listen for search input
         editSearchVehicle.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -111,7 +111,6 @@ public class VehicleListActivity extends AppCompatActivity {
         adapter.addAll(vehicles);
         adapter.notifyDataSetChanged();
     }
-
 
     private void attemptDeleteVehicle(Vehicle vehicle) {
         int maintenanceCount =

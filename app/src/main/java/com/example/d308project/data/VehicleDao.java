@@ -32,9 +32,9 @@ public interface VehicleDao {
     @Query("SELECT MAX(id) FROM vehicles")
     int getLastInsertedId();
 
-    // ✅ Search query for multiple fields (make, model, license plate)
+    // ✅ Updated search query (location instead of license_plate)
     @Query("SELECT * FROM vehicles " +
-            "WHERE make LIKE :query OR model LIKE :query OR license_plate LIKE :query " +
+            "WHERE make LIKE :query OR model LIKE :query OR location LIKE :query " +
             "ORDER BY make ASC, model ASC")
     List<Vehicle> searchVehicles(String query);
 }

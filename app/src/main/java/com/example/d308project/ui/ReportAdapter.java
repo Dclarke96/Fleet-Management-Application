@@ -37,7 +37,6 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
         MaintenanceRecord record = records.get(position);
 
-        // ✅ Android-safe vehicle lookup (NO streams)
         Vehicle vehicle = null;
         if (vehicles != null) {
             for (Vehicle v : vehicles) {
@@ -50,10 +49,10 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
         if (vehicle != null) {
             holder.tvVehicle.setText(vehicle.getMake() + " " + vehicle.getModel());
-            holder.tvLicense.setText(vehicle.getLicensePlate());
+            holder.tvLocation.setText(vehicle.getLocation());
         } else {
             holder.tvVehicle.setText("Unknown");
-            holder.tvLicense.setText("-");
+            holder.tvLocation.setText("-");
         }
 
         holder.tvServiceDate.setText(record.getServiceDate());
@@ -68,12 +67,12 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     static class ReportViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvVehicle, tvLicense, tvServiceDate, tvDescription, tvAlert;
+        TextView tvVehicle, tvLocation, tvServiceDate, tvDescription, tvAlert;
 
         public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
             tvVehicle = itemView.findViewById(R.id.tvVehicle);
-            tvLicense = itemView.findViewById(R.id.tvLicense);
+            tvLocation = itemView.findViewById(R.id.tvLocation);
             tvServiceDate = itemView.findViewById(R.id.tvServiceDate);
             tvDescription = itemView.findViewById(R.id.tvDescription);
             tvAlert = itemView.findViewById(R.id.tvAlert);

@@ -16,8 +16,8 @@ public class Vehicle extends BaseEntity {
     @ColumnInfo(name = "year")
     public int year;
 
-    @ColumnInfo(name = "license_plate")
-    public String licensePlate;
+    @ColumnInfo(name = "location")  // updated from license_plate
+    public String location;
 
     @ColumnInfo(name = "maintenance_alerts_enabled")
     public boolean maintenanceAlertsEnabled;
@@ -34,7 +34,7 @@ public class Vehicle extends BaseEntity {
             String make,
             String model,
             int year,
-            String licensePlate,
+            String location,  // updated from licensePlate
             boolean maintenanceAlertsEnabled,
             String startDate,
             String endDate
@@ -42,7 +42,7 @@ public class Vehicle extends BaseEntity {
         this.make = make;
         this.model = model;
         this.year = year;
-        this.licensePlate = licensePlate;
+        this.location = location; // updated
         this.maintenanceAlertsEnabled = maintenanceAlertsEnabled;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -51,7 +51,7 @@ public class Vehicle extends BaseEntity {
     @NonNull
     @Override
     public String toString() {
-        return year + " " + make + " " + model + " (" + licensePlate + ")" +
+        return year + " " + make + " " + model + " (" + location + ")" + // updated
                 " [" + startDate + " - " + (endDate != null ? endDate : "Present") + "]";
     }
 
@@ -60,7 +60,7 @@ public class Vehicle extends BaseEntity {
         return id;
     }
 
-    // Optional: getters/setters for other fields
+    // Getters and setters
     public String getMake() { return make; }
     public void setMake(String make) { this.make = make; }
 
@@ -70,8 +70,8 @@ public class Vehicle extends BaseEntity {
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
 
-    public String getLicensePlate() { return licensePlate; }
-    public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
+    public String getLocation() { return location; } // updated
+    public void setLocation(String location) { this.location = location; } // updated
 
     public boolean isMaintenanceAlertsEnabled() { return maintenanceAlertsEnabled; }
     public void setMaintenanceAlertsEnabled(boolean maintenanceAlertsEnabled) {
