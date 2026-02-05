@@ -31,6 +31,8 @@
             android:name=".ui.VehicleDetailActivity"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity android:name=".ui.ReportActivity" />
+
         <activity android:name=".ui.MaintenanceDetailActivity" />
         <activity android:name=".ui.MaintenanceListActivity" />
 

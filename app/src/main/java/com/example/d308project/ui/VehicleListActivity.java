@@ -37,6 +37,12 @@ public class VehicleListActivity extends AppCompatActivity {
         vehicleListView = findViewById(R.id.vehicle_list_view);
         editSearchVehicle = findViewById(R.id.editSearchVehicle);
         Button btnAddVehicle = findViewById(R.id.btnAddVehicle);
+        Button btnGenerateReport = findViewById(R.id.btnGenerateReport);
+
+        btnGenerateReport.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ReportActivity.class);
+            startActivity(intent);
+        });
 
         btnAddVehicle.setOnClickListener(view ->
                 startActivity(new Intent(this, VehicleDetailActivity.class))
@@ -105,6 +111,7 @@ public class VehicleListActivity extends AppCompatActivity {
         adapter.addAll(vehicles);
         adapter.notifyDataSetChanged();
     }
+
 
     private void attemptDeleteVehicle(Vehicle vehicle) {
         int maintenanceCount =

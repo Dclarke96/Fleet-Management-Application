@@ -18,6 +18,9 @@ public interface MaintenanceDao {
     @Insert
     void insertMaintenance(MaintenanceRecord maintenanceRecord);
 
+    @Query("SELECT * FROM maintenance_records")
+    List<MaintenanceRecord> getAllMaintenance();
+
     @Update
     void updateMaintenance(MaintenanceRecord maintenanceRecord);
 

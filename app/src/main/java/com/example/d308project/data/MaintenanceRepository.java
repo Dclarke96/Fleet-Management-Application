@@ -21,6 +21,10 @@ public class MaintenanceRepository {
         return db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
     }
 
+    public List<MaintenanceRecord> getAllMaintenance() {
+        return db.maintenanceDao().getAllMaintenance();
+    }
+
     public MaintenanceRecord getMaintenanceById(int id) {
         return db.maintenanceDao().getMaintenanceById(id);
     }

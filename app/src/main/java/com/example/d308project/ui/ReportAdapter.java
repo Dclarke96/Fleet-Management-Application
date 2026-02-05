@@ -1,0 +1,82 @@
+package com.example.d308project.ui;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.d308project.R;
+import com.example.d308project.data.MaintenanceRecord;
+import com.example.d308project.data.Vehicle;
+
+import java.util.List;
+
+public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
+
+    private final List<MaintenanceRecord> records;
+    private final List<Vehicle> vehicles;
+
+    public ReportAdapter(List<MaintenanceRecord> records, List<Vehicle> vehicles) {
+        this.records = records;
+        this.vehicles = vehicles;
+    }
+
+    @NonNull
+    @Override
+    public ReportViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_report_row, parent, false);
+        return new ReportViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
+
+        if (records == null || position >= records.size()) return;
+
+        MaintenanceRecord record = records.get(position);
+
+        // ✅ Android-safe vehicle lookup (NO streams)
+        Vehicle vehicle = null;
+        if (vehicles != null) {
+            for (Vehicle v : vehicles) {
+                if (v.getId() == record.getVehicleId()) {
+                    vehicle = v;
+                    break;
+                }
+            }
+        }
+
+        if (vehicle != null) {
+            holder.tvVehicle.setText(vehicle.getMake() + " " + vehicle.getModel());
+            holder.tvLicense.setText(vehicle.getLicensePlate());
+        } else {
+            holder.tvVehicle.setText("Unknown");
+            holder.tvLicense.setText("-");
+        }
+
+        holder.tvServiceDate.setText(record.getServiceDate());
+        holder.tvDescription.setText(record.getDescription());
+        holder.tvAlert.setText(record.isAlertsEnabled() ? "Yes" : "No");
+    }
+
+    @Override
+    public int getItemCount() {
+        return records == null ? 0 : records.size();
+    }
+
+    static class ReportViewHolder extends RecyclerView.ViewHolder {
+
+        TextView tvVehicle, tvLicense, tvServiceDate, tvDescription, tvAlert;
+
+        public ReportViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvVehicle = itemView.findViewById(R.id.tvVehicle);
+            tvLicense = itemView.findViewById(R.id.tvLicense);
+            tvServiceDate = itemView.findViewById(R.id.tvServiceDate);
+            tvDescription = itemView.findViewById(R.id.tvDescription);
+            tvAlert = itemView.findViewById(R.id.tvAlert);
+        }
+    }
+}
