@@ -12,6 +12,12 @@ import com.example.d308project.data.Vehicle;
 
 import java.util.List;
 
+
+// SCALABILITY:
+// RecyclerView adapter supports dynamic data sets,
+// enabling future report types or additional fields
+// without changing Activity logic.
+
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
 
     private final List<MaintenanceRecord> records;

@@ -8,6 +8,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+
+// SCALABILITY DESIGN:
+// Repository pattern separates UI from data layer.
+// Allows future expansion to APIs, caching,
+// background sync, or alternative data sources
+// without modifying Activities.
 public class VehicleRepository {
 
     private final AppDatabase db;

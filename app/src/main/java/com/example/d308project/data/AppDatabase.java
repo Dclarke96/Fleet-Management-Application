@@ -6,6 +6,12 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+
+// SCALABILITY DESIGN:
+// Repository pattern separates UI from data layer.
+// Allows future expansion to APIs, caching,
+// background sync, or alternative data sources
+// without modifying Activities.
 @Database(
         entities = {Vehicle.class, MaintenanceRecord.class},
         version = 7

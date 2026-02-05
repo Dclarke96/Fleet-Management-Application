@@ -19,6 +19,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+// DESIGN FOR SCALABILITY:
+// Feature-specific activity keeps UI modular,
+// allowing independent expansion of application features.
+
 public class MaintenanceDetailActivity extends AppCompatActivity {
 
     private EditText editDescription, editDate;

@@ -19,6 +19,10 @@ import com.example.d308project.data.Vehicle;
 
 import java.util.List;
 
+// DESIGN FOR SCALABILITY:
+// Feature-specific activity keeps UI modular,
+// allowing independent expansion of application features.
+
 public class VehicleListActivity extends AppCompatActivity {
 
     private ListView vehicleListView;

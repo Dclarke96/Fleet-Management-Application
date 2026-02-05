@@ -7,6 +7,11 @@ import android.widget.Button;
 import com.example.d308project.R;
 import androidx.appcompat.app.AppCompatActivity;
 
+
+// DESIGN FOR SCALABILITY:
+// Feature-specific activity keeps UI modular,
+// allowing independent expansion of application features.
+
 public class MainActivity extends AppCompatActivity {
 
     Button btnViewVehicles;

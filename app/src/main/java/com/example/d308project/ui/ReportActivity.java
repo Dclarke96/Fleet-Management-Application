@@ -17,6 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+// DESIGN FOR SCALABILITY:
+// Feature-specific activity keeps UI modular,
+// allowing independent expansion of application features.
+
 public class ReportActivity extends AppCompatActivity {
 
     private RecyclerView rvReport;
