@@ -52,6 +52,15 @@ public class VehicleRepository {
         return true;
     }
 
+    // -----------------------------------------------------------
+    // SECURITY: Repository-Level Validation
+    // Prevents:
+    // - Empty or malformed vehicle data
+    // - Invalid dates
+    // - Data integrity issues before DB insertion
+    // Acts as secure gatekeeper between UI and database
+    // -----------------------------------------------------------
+
     // --------- Validation ---------
     private boolean validateVehicle(Vehicle vehicle, Context context) {
         // Check required fields

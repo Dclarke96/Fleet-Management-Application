@@ -58,6 +58,16 @@ public class MaintenanceRepository {
         return db.vehicleDao().getVehicleById(vehicleId);
     }
 
+    // -----------------------------------------------------------
+    // SECURITY: Centralized Input Validation
+    // Ensures:
+    // - Required fields are present
+    // - Date formats are valid
+    // - Service dates fall within allowed vehicle ranges
+    // - Related vehicle exists before saving maintenance
+    // Prevents invalid data entry and protects database integrity
+    // -----------------------------------------------------------
+
     // --------- Validation ---------
     private boolean validateRecord(MaintenanceRecord record, Context context) {
 

@@ -17,6 +17,9 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract VehicleDao vehicleDao();
     public abstract MaintenanceDao maintenanceDao();
 
+    // SECURITY NOTE:
+    // Using Room ORM provides parameterized queries
+    // which protects against SQL injection attacks.
     public static synchronized AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(
