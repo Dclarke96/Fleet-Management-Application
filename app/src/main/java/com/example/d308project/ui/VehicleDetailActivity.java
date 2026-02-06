@@ -1,8 +1,10 @@
 package com.example.d308project.ui;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,7 +23,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
     private EditText editTitle, editLocation, editStartDate, editEndDate;
     private Switch switchAlert;
-    private Button btnSave, btnBack, btnAddMaintenance, btnManageMaintenance;
+    private Button btnSave, btnBack, btnAddMaintenance, btnManageMaintenance, btnDelete, btnShare;
 
     private VehicleRepository vehicleRepo;
     private int vehicleId = -1;
@@ -33,7 +35,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         // Bind views
         editTitle = findViewById(R.id.editTitle);
-        editLocation = findViewById(R.id.editLocation); // location field
+        editLocation = findViewById(R.id.editLocation);
         editStartDate = findViewById(R.id.editStartDate);
         editEndDate = findViewById(R.id.editEndDate);
         switchAlert = findViewById(R.id.switchAlert);
@@ -42,6 +44,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnAddMaintenance = findViewById(R.id.btnAddMaintenance);
         btnManageMaintenance = findViewById(R.id.btnManageMaintenance);
+        btnDelete = findViewById(R.id.btnDelete);
+        btnShare = findViewById(R.id.btnShare);
 
         // Initialize repository
         vehicleRepo = new VehicleRepository(getApplicationContext());
@@ -51,6 +55,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
             vehicleId = getIntent().getIntExtra("vehicleId", -1);
             if (vehicleId != -1) {
                 loadVehicle();
+                btnDelete.setVisibility(View.VISIBLE); // show delete for existing vehicle
             }
         }
 
@@ -82,6 +87,52 @@ public class VehicleDetailActivity extends AppCompatActivity {
             intent.putExtra("vehicleId", vehicleId);
             startActivity(intent);
         });
+
+        // Delete button listener
+        btnDelete.setOnClickListener(v -> {
+            if (vehicleId == -1) return;
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Vehicle")
+                    .setMessage("Are you sure you want to delete this vehicle? This cannot be undone.")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
+                        if (vehicle != null) {
+                            boolean success = vehicleRepo.deleteVehicle(vehicle, this);
+                            if (success) {
+                                Toast.makeText(this, "Vehicle deleted", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+        // Share button listener
+        btnShare.setOnClickListener(v -> {
+            if (vehicleId == -1) {
+                Toast.makeText(this, "Save vehicle first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
+            if (vehicle == null) return;
+
+            String vehicleInfo = "Vehicle Info:\n" +
+                    "Make: " + vehicle.getMake() + "\n" +
+                    "Model: " + vehicle.getModel() + "\n" +
+                    "Location: " + vehicle.getLocation() + "\n" +
+                    "Start Date: " + vehicle.getStartDate() + "\n" +
+                    "End Date: " + vehicle.getEndDate();
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Vehicle Information");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, vehicleInfo);
+
+            startActivity(Intent.createChooser(shareIntent, "Share vehicle via"));
+        });
     }
 
     private void showDatePicker(EditText editText, Calendar calendar) {
@@ -101,7 +152,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         if (vehicle == null) return;
 
         editTitle.setText(vehicle.getMake() + " " + vehicle.getModel());
-        editLocation.setText(vehicle.getLocation()); // ✅ updated
+        editLocation.setText(vehicle.getLocation());
         editStartDate.setText(vehicle.getStartDate());
         editEndDate.setText(vehicle.getEndDate());
         switchAlert.setChecked(vehicle.isMaintenanceAlertsEnabled());
@@ -130,18 +181,19 @@ public class VehicleDetailActivity extends AppCompatActivity {
         String[] parts = title.split(" ", 2);
         vehicle.setMake(parts.length > 0 ? parts[0] : "");
         vehicle.setModel(parts.length > 1 ? parts[1] : "");
-        vehicle.setLocation(location); // ✅ updated
+        vehicle.setLocation(location);
         vehicle.setStartDate(startDate);
         vehicle.setEndDate(endDate);
         vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
         // Save via repository
         if (vehicleId == -1) {
-            int newId = vehicleRepo.addVehicle(vehicle, this); // ✅ validation with Context
+            int newId = vehicleRepo.addVehicle(vehicle, this);
             if (newId == -1) return; // validation failed
             vehicleId = newId;
+            btnDelete.setVisibility(View.VISIBLE); // show delete now
         } else {
-            vehicleRepo.updateVehicle(vehicle, this); // ✅ validation with Context
+            vehicleRepo.updateVehicle(vehicle, this);
         }
 
         Toast.makeText(this, "Vehicle saved", Toast.LENGTH_SHORT).show();
