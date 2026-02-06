@@ -5,9 +5,9 @@ import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-
 
 // SCALABILITY DESIGN:
 // Repository pattern separates UI from data layer.
@@ -63,15 +63,22 @@ public class VehicleRepository {
     // Prevents:
     // - Empty or malformed vehicle data
     // - Invalid dates
+    // - Invalid year
     // - Data integrity issues before DB insertion
-    // Acts as secure gatekeeper between UI and database
     // -----------------------------------------------------------
 
-    // --------- Validation ---------
     private boolean validateVehicle(Vehicle vehicle, Context context) {
         // Check required fields
-        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty() || vehicle.getLocation().isEmpty()) {
+        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty() ||
+                vehicle.getLocation().isEmpty()) {
             Toast.makeText(context, "Make, model, and location are required", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate year (must be reasonable: 1900 <= year <= current year)
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        if (vehicle.getYear() < 1900 || vehicle.getYear() > currentYear) {
+            Toast.makeText(context, "Year must be between 1900 and " + currentYear, Toast.LENGTH_SHORT).show();
             return false;
         }
 

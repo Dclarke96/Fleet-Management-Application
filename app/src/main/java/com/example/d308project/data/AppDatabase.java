@@ -14,7 +14,7 @@ import androidx.room.RoomDatabase;
 // without modifying Activities.
 @Database(
         entities = {Vehicle.class, MaintenanceRecord.class},
-        version = 7
+        version = 8
 )
 public abstract class AppDatabase extends RoomDatabase {
 

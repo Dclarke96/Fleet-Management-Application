@@ -25,15 +25,51 @@
             android:layout_marginHorizontal="4dp"
             android:clipToPadding="false">
 
-            <!-- Vehicle Name -->
+            <!-- Vehicle Entry Name -->
             <EditText
                 android:id="@+id/editTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Vehicle Name"
+                android:hint="Vehicle Entry Name"
                 android:inputType="textCapWords"
                 android:padding="12dp"
                 android:textSize="16sp"
+                android:background="@android:drawable/edit_text" />
+
+            <!-- Vehicle Make -->
+            <EditText
+                android:id="@+id/editMake"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Make"
+                android:inputType="textCapWords"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
+                android:background="@android:drawable/edit_text" />
+
+            <!-- Vehicle Model -->
+            <EditText
+                android:id="@+id/editModel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Model"
+                android:inputType="textCapWords"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
+                android:background="@android:drawable/edit_text" />
+
+            <!-- Vehicle Year -->
+            <EditText
+                android:id="@+id/editYear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Year"
+                android:inputType="number"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
                 android:background="@android:drawable/edit_text" />
 
             <!-- Vehicle Location / Garage -->

@@ -7,6 +7,9 @@ import androidx.room.Entity;
 @Entity(tableName = "vehicles")
 public class Vehicle extends BaseEntity {
 
+    @ColumnInfo(name = "title")
+    public String title;  // User-defined vehicle title
+
     @ColumnInfo(name = "make")
     public String make;
 
@@ -31,18 +34,20 @@ public class Vehicle extends BaseEntity {
     public Vehicle() {}
 
     public Vehicle(
+            String title,
             String make,
             String model,
             int year,
-            String location,  // updated from licensePlate
+            String location,
             boolean maintenanceAlertsEnabled,
             String startDate,
             String endDate
     ) {
+        this.title = title;
         this.make = make;
         this.model = model;
         this.year = year;
-        this.location = location; // updated
+        this.location = location;
         this.maintenanceAlertsEnabled = maintenanceAlertsEnabled;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -51,16 +56,20 @@ public class Vehicle extends BaseEntity {
     @NonNull
     @Override
     public String toString() {
-        return year + " " + make + " " + model + " (" + location + ")" + // updated
+        return (title != null && !title.isEmpty() ? title + " - " : "") +
+                year + " " + make + " " + model + " (" + location + ")" +
                 " [" + startDate + " - " + (endDate != null ? endDate : "Present") + "]";
     }
 
-    // ✅ Getter for ID (protected in BaseEntity)
+    // Getter for ID (from BaseEntity)
     public int getId() {
         return id;
     }
 
     // Getters and setters
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
     public String getMake() { return make; }
     public void setMake(String make) { this.make = make; }
 
@@ -70,8 +79,8 @@ public class Vehicle extends BaseEntity {
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
 
-    public String getLocation() { return location; } // updated
-    public void setLocation(String location) { this.location = location; } // updated
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
     public boolean isMaintenanceAlertsEnabled() { return maintenanceAlertsEnabled; }
     public void setMaintenanceAlertsEnabled(boolean maintenanceAlertsEnabled) {
@@ -87,6 +96,6 @@ public class Vehicle extends BaseEntity {
     @NonNull
     @Override
     public String displayName() {
-        return make + " " + model;
+        return (title != null && !title.isEmpty() ? title + " - " : "") + make + " " + model;
     }
 }
