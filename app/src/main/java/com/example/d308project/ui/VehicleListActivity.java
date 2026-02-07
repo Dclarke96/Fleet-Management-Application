@@ -17,6 +17,7 @@ import com.example.d308project.R;
 import com.example.d308project.data.AppDatabase;
 import com.example.d308project.data.Vehicle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // DESIGN FOR SCALABILITY:
@@ -28,7 +29,7 @@ public class VehicleListActivity extends AppCompatActivity {
     private ListView vehicleListView;
     private EditText editSearchVehicle;
     private AppDatabase db;
-    private List<Vehicle> vehicles;
+    private List<Vehicle> vehicles = new ArrayList<>();
     private ArrayAdapter<Vehicle> adapter;
 
     @Override
@@ -52,30 +53,7 @@ public class VehicleListActivity extends AppCompatActivity {
                 startActivity(new Intent(this, VehicleDetailActivity.class))
         );
 
-        // Listen for search input
-        editSearchVehicle.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterVehicles(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadVehicles();
-    }
-
-    private void loadVehicles() {
-        vehicles = db.vehicleDao().getAllVehicles();
-
+        // Initialize adapter once (better performance + stability)
         adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
@@ -106,27 +84,65 @@ public class VehicleListActivity extends AppCompatActivity {
             }
             return true;
         });
+
+        // Live incremental search
+        editSearchVehicle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterVehicles(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadVehicles();
+    }
+
+    private void loadVehicles() {
+        vehicles.clear();
+        vehicles.addAll(db.vehicleDao().getAllVehicles());
+        adapter.notifyDataSetChanged();
     }
 
     private void filterVehicles(String query) {
-        String searchTerm = "%" + query.trim() + "%";
-        vehicles = db.vehicleDao().searchVehicles(searchTerm);
-        adapter.clear();
-        adapter.addAll(vehicles);
+
+        List<Vehicle> results;
+
+        if (query == null || query.trim().isEmpty()) {
+            results = db.vehicleDao().getAllVehicles();
+        } else {
+            // DO NOT add % here — DAO handles wildcards
+            results = db.vehicleDao().searchVehicles(query.trim());
+        }
+
+        vehicles.clear();
+        vehicles.addAll(results);
         adapter.notifyDataSetChanged();
     }
 
     private void attemptDeleteVehicle(Vehicle vehicle) {
+
         int maintenanceCount =
                 db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId());
 
         if (maintenanceCount > 0) {
+
             new AlertDialog.Builder(this)
                     .setTitle("Cannot Delete Vehicle")
                     .setMessage("This vehicle has maintenance records. Delete them first.")
                     .setPositiveButton("OK", null)
                     .show();
+
         } else {
+
             db.vehicleDao().deleteVehicle(vehicle);
             loadVehicles();
             Toast.makeText(this, "Vehicle deleted", Toast.LENGTH_SHORT).show();
