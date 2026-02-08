@@ -95,7 +95,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
                     .setMessage("Are you sure you want to delete this vehicle? This cannot be undone.")
                     .setPositiveButton("Delete", (dialog, which) -> {
                         Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
-                        if (vehicle != null && vehicleRepo.deleteVehicle(vehicle, this)) {
+                        if (vehicle != null && vehicleRepo.deleteVehicle(vehicle)) {
                             Toast.makeText(this, "Vehicle deleted", Toast.LENGTH_SHORT).show();
                             finish();
                         }
@@ -198,12 +198,12 @@ public class VehicleDetailActivity extends AppCompatActivity {
         vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
         if (vehicleId == -1) {
-            int newId = vehicleRepo.addVehicle(vehicle, this);
+            int newId = vehicleRepo.addVehicle(vehicle);
             if (newId == -1) return;
             vehicleId = newId;
             btnDelete.setVisibility(View.VISIBLE);
         } else {
-            vehicleRepo.updateVehicle(vehicle, this);
+            vehicleRepo.updateVehicle(vehicle);
         }
 
         Toast.makeText(this, "Vehicle saved", Toast.LENGTH_SHORT).show();

@@ -1,7 +1,6 @@
 package com.example.d308project.data;
 
 import android.content.Context;
-import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,71 +32,78 @@ public class VehicleRepository {
         return db.vehicleDao().getVehicleById(id);
     }
 
-    // Add new vehicle, returns inserted ID or -1 on failure
-    public int addVehicle(Vehicle vehicle, Context context) {
-        if (!validateVehicle(vehicle, context)) return -1;
+    // Search vehicles
+    public List<Vehicle> searchVehicles(String query) {
+        return db.vehicleDao().searchVehicles(query);
+    }
+
+    // Add new vehicle
+    public int addVehicle(Vehicle vehicle) {
+        String validationError = validateVehicle(vehicle);
+        if (validationError != null) return -1;
+
         long id = db.vehicleDao().insertVehicle(vehicle);
         return (int) id;
     }
 
-    // Update existing vehicle, returns true if successful
-    public boolean updateVehicle(Vehicle vehicle, Context context) {
-        if (!validateVehicle(vehicle, context)) return false;
+    // Update existing vehicle
+    public boolean updateVehicle(Vehicle vehicle) {
+        String validationError = validateVehicle(vehicle);
+        if (validationError != null) return false;
+
         db.vehicleDao().updateVehicle(vehicle);
         return true;
     }
 
-    // Delete vehicle (returns false if it has maintenance records)
-    public boolean deleteVehicle(Vehicle vehicle, Context context) {
+    // Delete vehicle
+    public boolean deleteVehicle(Vehicle vehicle) {
         int count = db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId());
         if (count > 0) {
-            Toast.makeText(context, "Cannot delete vehicle with maintenance records", Toast.LENGTH_SHORT).show();
             return false;
         }
+
         db.vehicleDao().deleteVehicle(vehicle);
         return true;
     }
 
+    // Public validation helper for UI layer
+    public String getValidationError(Vehicle vehicle) {
+        return validateVehicle(vehicle);
+    }
+
     // -----------------------------------------------------------
     // SECURITY: Repository-Level Validation
-    // Prevents:
-    // - Empty or malformed vehicle data
-    // - Invalid dates
-    // - Invalid year
-    // - Data integrity issues before DB insertion
     // -----------------------------------------------------------
+    private String validateVehicle(Vehicle vehicle) {
 
-    private boolean validateVehicle(Vehicle vehicle, Context context) {
-        // Check required fields
-        if (vehicle.getMake().isEmpty() || vehicle.getModel().isEmpty() ||
+        if (vehicle.getMake().isEmpty() ||
+                vehicle.getModel().isEmpty() ||
                 vehicle.getLocation().isEmpty()) {
-            Toast.makeText(context, "Make, model, and location are required", Toast.LENGTH_SHORT).show();
-            return false;
+            return "Make, model, and location are required";
         }
 
-        // Validate year (must be reasonable: 1900 <= year <= current year)
         int currentYear = Calendar.getInstance().get(Calendar.YEAR);
         if (vehicle.getYear() < 1900 || vehicle.getYear() > currentYear) {
-            Toast.makeText(context, "Year must be between 1900 and " + currentYear, Toast.LENGTH_SHORT).show();
-            return false;
+            return "Year must be between 1900 and " + currentYear;
         }
 
-        // Check date formats
         try {
             sdf.setLenient(false);
             sdf.parse(vehicle.getStartDate());
 
-            if (vehicle.getEndDate() != null && !vehicle.getEndDate().isEmpty()) {
-                if (sdf.parse(vehicle.getEndDate()).before(sdf.parse(vehicle.getStartDate()))) {
-                    Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
-                    return false;
+            if (vehicle.getEndDate() != null &&
+                    !vehicle.getEndDate().isEmpty()) {
+
+                if (sdf.parse(vehicle.getEndDate())
+                        .before(sdf.parse(vehicle.getStartDate()))) {
+                    return "End date cannot be before start date";
                 }
             }
+
         } catch (ParseException e) {
-            Toast.makeText(context, "Invalid date format (yyyy-MM-dd)", Toast.LENGTH_SHORT).show();
-            return false;
+            return "Invalid date format (yyyy-MM-dd)";
         }
 
-        return true;
+        return null;
     }
 }
