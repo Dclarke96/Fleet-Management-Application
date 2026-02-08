@@ -1,51 +1,118 @@
-Title: Vacation Scheduler
+Fleet Management
+Purpose
 
-Purpose: The Vacation Scheduler is a mobile application developed for Android devices that allows users to manage personal vacations and associated maintenanceRecords. The app provides functionality to create, edit, and delete vehicle plans, set alerts, and view detailed information for each maintenanceRecord and vehicle entry.
+Fleet Management is an Android mobile application designed to help users manage a fleet of vehicles. The app provides functionality to:
 
-How to Operate the Application:
+Add, edit, and delete vehicles.
+
+Track maintenance records for each vehicle.
+
+Set optional alerts for maintenance schedules.
+
+View detailed information about vehicles and their maintenance history.
+
+The app uses a Room database for local storage and includes validation to ensure data integrity.
+
+How to Operate the Application
 Launch the App
 
-When the app opens, you are greeted with a Home Screen containing a button to view vacations.
+Open the app on your Android device.
 
-View Vacations
+The Home Screen displays buttons to view all vehicles.
 
-Tap “VIEW VACATIONS” to see a list of all saved vacations.
+View Vehicles
 
-You can add a new vehicle using the Add button.
+Tap “VIEW VEHICLES” to see a list of all saved vehicles.
 
-Add/Edit a Vacation
+Vehicles can be searched using the search functionality.
 
-Enter vehicle details like title, destination, start/end dates.
+Add/Edit a Vehicle
 
-Save to view it in the list.
+Tap the Add button to create a new vehicle.
+
+Enter vehicle details:
+
+Title (optional descriptive name)
+
+Make & Model
+
+Year
+
+Location
+
+Maintenance alert preferences
+
+Start and end dates
+
+Save to add the vehicle to the list.
 
 Tap a vehicle to open its detail view.
 
-Edit or delete using available options.
+Edit or delete vehicles using the available options.
 
-View Excursions
+View Maintenance Records
 
-In a vehicle detail view, tap “View Excursions” to see all maintenanceRecords for that vehicle.
+In a vehicle’s detail view, tap “View Maintenance” to see all associated records.
 
-Add new maintenanceRecords with title, description, and dates.
+Add new records with:
 
-Each maintenanceRecord includes optional alert functionality.
+Title
+
+Description
+
+Dates
+
+Optional alerts
+
+Validation ensures maintenance dates are within the vehicle’s active date range.
 
 Alerts & Validation
 
-Alerts are scheduled using Android’s alarm service.
+Alerts are handled via Android’s alarm service.
 
-Dates are validated to ensure maintenanceRecords fall within the parent vehicle date range.
+Validation ensures:
 
-APK Deployment Version:
-The signed APK is built and tested on:
+Required fields are filled.
 
-Android SDK Version: 33
+Years are reasonable.
+
+Start and end dates are valid.
+
+Maintenance records fall within the parent vehicle dates.
+
+Testing
+Unit Tests
+
+The app includes JUnit tests for core functionality:
+
+Add, edit, delete vehicles
+
+Search functionality
+
+Data validation
+
+Tests are located in:
+app/src/androidTest/java/com/example/d308project/VehicleRepositoryTest.kt
+
+Screenshots of test results and validations were captured during development.
+
+APK Deployment
+Tested Environment
+
+Android SDK Version: 35
 
 Minimum SDK Version: 26 (Android 8.0 - Oreo)
 
-Compatible with most Android 8.0+ devices.
+Compatible with most devices running Android 8.0 or later.
 
-Git Repository Link:
+Installation
 
-https://gitlab.com/wgu-gitlab-environment/student-repos/dcla500/d308-mobile-application-development-android/-/tree/D308project?ref_type=heads
+Download the signed APK (FleetManagement-1.0.apk) from the GitHub Pages link.
+
+Enable installation from unknown sources if needed.
+
+Open the APK on your device to install.
+
+Git Repository
+
+https://gitlab.com/wgu-gitlab-environment/student-repos/dcla500/d424-software-engineering-capstone/-/tree/capstone?ref_type=heads
