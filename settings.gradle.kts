@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
+
 rootProject.name = "Fleet Management"
 include(":app")
