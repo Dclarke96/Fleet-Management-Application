@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.d308project"
+    namespace = "com.dylanclarke.FleetManagementApp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.d308project"
+        applicationId = "com.dylanclarke.FleetManagementApp"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -19,9 +19,24 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // ⚠️ Update these values to match your keystore
+            storeFile = file("../keystore/fleet_management_keystore.jks")
+            storePassword = "your_store_password"
+            keyAlias = "fleet_key_alias"
+            keyPassword = "your_key_password"
+        }
+    }
+
     buildTypes {
-        release {
+        debug {
+            // Default debug build
             isMinifyEnabled = false
+        }
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false // You can enable R8/proguard later
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -47,7 +62,6 @@ android {
     }
 }
 
-25
 // ----------------------------
 // Dependencies
 // ----------------------------
@@ -78,7 +92,7 @@ dependencies {
 
     // Testing
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5") // FIXED
+    androidTestImplementation("androidx.test.ext:junit:1.1.5") // ✅ fixed version
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
