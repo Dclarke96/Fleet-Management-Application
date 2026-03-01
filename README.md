@@ -36,11 +36,14 @@ Fleet Management is a professional Android mobile application that helps users m
 
 
 
-!\[Home Screen](screenshots/home\_screen.png)
+!\[Home Screen]
+(screenshots/home\_screen.png)
 
-!\[Vehicle Detail](screenshots/vehicle\_detail.png)
+!\[Vehicle Detail]
+(screenshots/vehicle\_detail.png)
 
-!\[Maintenance Records](screenshots/maintenance\_records.png)
+!\[Maintenance Records]
+(screenshots/maintenance\_records.png)
 
 
 
@@ -160,7 +163,7 @@ The full \*\*interactive user guide\*\* is available in PDF format:
 
 \- GitHub repo (main branch):  
 
-\[https://github.com/YourUsername/FleetManagementApp](https://github.com/YourUsername/FleetManagementApp)  
+\https://github.com/Dclarke96/Fleet-Management-Application/tree/main 
 
 
 
