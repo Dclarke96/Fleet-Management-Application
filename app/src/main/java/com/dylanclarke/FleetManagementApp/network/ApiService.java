@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface ApiService {
 
-    @POST("auth/login")
+    @POST("/api/auth/login")
     Call<ApiResponse<String>> login(@Body LoginRequest request);
 
     @GET("vehicles")
