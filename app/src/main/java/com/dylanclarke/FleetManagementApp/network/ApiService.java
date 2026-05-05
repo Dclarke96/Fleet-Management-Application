@@ -15,7 +15,7 @@ public interface ApiService {
     Call<ApiResponse<String>> login(@Body LoginRequest request);
 
     @GET("/api/vehicles")
-    Call<List<Vehicle>> getVehicles();
+    Call<ApiResponse<PageResponse<Vehicle>>> getVehicles();
 
     @POST("/api/vehicles")
     Call<Vehicle> addVehicle(@Body Vehicle vehicle);

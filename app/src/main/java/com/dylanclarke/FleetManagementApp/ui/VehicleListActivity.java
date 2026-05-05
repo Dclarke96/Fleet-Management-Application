@@ -14,10 +14,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dylanclarke.FleetManagementApp.R;
-import com.dylanclarke.FleetManagementApp.data.AppDatabase;
 import com.dylanclarke.FleetManagementApp.data.Vehicle;
 import com.dylanclarke.FleetManagementApp.network.ApiClient;
 import com.dylanclarke.FleetManagementApp.network.ApiService;
+import com.dylanclarke.FleetManagementApp.network.ApiResponse;
+import com.dylanclarke.FleetManagementApp.network.PageResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,10 +26,6 @@ import retrofit2.Response;
 
 import java.util.ArrayList;
 import java.util.List;
-
-// DESIGN FOR SCALABILITY:
-// Feature-specific activity keeps UI modular,
-// allowing independent expansion of application features.
 
 public class VehicleListActivity extends AppCompatActivity {
 
@@ -59,7 +56,6 @@ public class VehicleListActivity extends AppCompatActivity {
                 startActivity(new Intent(this, VehicleDetailActivity.class))
         );
 
-        // Initialize adapter once (better performance + stability)
         adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
@@ -91,7 +87,6 @@ public class VehicleListActivity extends AppCompatActivity {
             return true;
         });
 
-        // Live incremental search
         editSearchVehicle.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -114,16 +109,23 @@ public class VehicleListActivity extends AppCompatActivity {
 
     private void loadVehicles() {
 
-        apiService.getVehicles().enqueue(new Callback<List<Vehicle>>() {
+        apiService.getVehicles().enqueue(new Callback<ApiResponse<PageResponse<Vehicle>>>() {
 
             @Override
-            public void onResponse(Call<List<Vehicle>> call, Response<List<Vehicle>> response) {
+            public void onResponse(
+                    Call<ApiResponse<PageResponse<Vehicle>>> call,
+                    Response<ApiResponse<PageResponse<Vehicle>>> response
+            ) {
 
                 if (response.isSuccessful() && response.body() != null) {
 
-                    vehicles.clear();
-                    vehicles.addAll(response.body());
-                    adapter.notifyDataSetChanged();
+                    ApiResponse<PageResponse<Vehicle>> apiResponse = response.body();
+
+                    if (apiResponse.getData() != null && apiResponse.getData().content != null) {
+                        vehicles.clear();
+                        vehicles.addAll(apiResponse.getData().content);
+                        adapter.notifyDataSetChanged();
+                    }
 
                 } else {
                     Toast.makeText(VehicleListActivity.this,
@@ -133,11 +135,16 @@ public class VehicleListActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Vehicle>> call, Throwable t) {
+            public void onFailure(
+                    Call<ApiResponse<PageResponse<Vehicle>>> call,
+                    Throwable t
+            ) {
 
-                Toast.makeText(VehicleListActivity.this,
-                        "Network error: " + t.getMessage(),
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(
+                        VehicleListActivity.this,
+                        "Error: " + t.getClass().getSimpleName() + " - " + t.getMessage(),
+                        Toast.LENGTH_LONG
+                ).show();
             }
         });
     }
