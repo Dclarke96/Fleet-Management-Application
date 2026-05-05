@@ -80,7 +80,7 @@ public class MaintenanceListActivity extends AppCompatActivity {
             });
 
             btnDelete.setOnClickListener(v -> {
-                db.maintenanceDao().deleteMaintenanceById(record.getId());
+                db.maintenanceDao().deleteMaintenanceById(record.getId().intValue());
                 loadMaintenanceRecords();
             });
 

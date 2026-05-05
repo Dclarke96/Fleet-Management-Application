@@ -1,23 +1,48 @@
 package com.dylanclarke.FleetManagementApp.network;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    // IMPORTANT:
-    // If using Android Emulator → 10.0.2.2 points to your PC localhost
-    private static final String BASE_URL = "http://10.0.2.2:8080/";
-
     private static Retrofit retrofit;
 
-    public static Retrofit getClient() {
+    public static Retrofit getClient(Context context) {
+
         if (retrofit == null) {
+
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+
+                        SharedPreferences prefs =
+                                context.getSharedPreferences("auth", Context.MODE_PRIVATE);
+
+                        String token = prefs.getString("jwt", null);
+
+                        Request request = chain.request();
+
+                        if (token != null) {
+                            request = request.newBuilder()
+                                    .addHeader("Authorization", "Bearer " + token)
+                                    .build();
+                        }
+
+                        return chain.proceed(request);
+                    })
+                    .build();
+
             retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
+                    .baseUrl("http://10.0.2.2:8080/")
                     .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
                     .build();
         }
+
         return retrofit;
     }
 }

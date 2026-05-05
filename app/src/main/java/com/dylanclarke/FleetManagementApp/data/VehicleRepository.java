@@ -57,7 +57,7 @@ public class VehicleRepository {
 
     // Delete vehicle
     public boolean deleteVehicle(Vehicle vehicle) {
-        int count = db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId());
+        int count = db.maintenanceDao().countMaintenanceForVehicle(vehicle.getId().intValue());
         if (count > 0) {
             return false;
         }

@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        ApiService apiService = ApiClient.getClient(getApplicationContext()).create(ApiService.class);
 
         LoginRequest request = new LoginRequest(username, password);
 

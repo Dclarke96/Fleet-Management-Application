@@ -62,7 +62,7 @@ public class Vehicle extends BaseEntity {
     }
 
     // Getter for ID (from BaseEntity)
-    public int getId() {
+    public Long getId() {
         return id;
     }
 

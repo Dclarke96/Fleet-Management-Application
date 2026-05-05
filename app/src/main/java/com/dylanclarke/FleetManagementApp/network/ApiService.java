@@ -14,6 +14,12 @@ public interface ApiService {
     @POST("/api/auth/login")
     Call<ApiResponse<String>> login(@Body LoginRequest request);
 
-    @GET("vehicles")
-    Call<ApiResponse<List<Vehicle>>> getVehicles(@Header("Authorization") String token);
+    @GET("/api/vehicles")
+    Call<List<Vehicle>> getVehicles();
+
+    @POST("/api/vehicles")
+    Call<Vehicle> addVehicle(@Body Vehicle vehicle);
+
+    @DELETE("/api/vehicles/{id}")
+    Call<Void> deleteVehicle(@Path("id") Long id);
 }
