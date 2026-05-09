@@ -157,6 +157,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
     }
 
     private void saveVehicle() {
+
         String title = editTitle.getText().toString().trim();
         String make = editMake.getText().toString().trim();
         String model = editModel.getText().toString().trim();
@@ -171,6 +172,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         }
 
         int year = 0;
+
         if (!yearStr.isEmpty()) {
             try {
                 year = Integer.parseInt(yearStr);
@@ -181,6 +183,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         }
 
         Vehicle vehicle;
+
         if (vehicleId == -1) {
             vehicle = new Vehicle();
         } else {
@@ -188,7 +191,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
             if (vehicle == null) vehicle = new Vehicle();
         }
 
-        vehicle.setTitle(title); // properly save title
+        vehicle.setTitle(title);
         vehicle.setMake(make);
         vehicle.setModel(model);
         vehicle.setYear(year);
@@ -197,15 +200,42 @@ public class VehicleDetailActivity extends AppCompatActivity {
         vehicle.setEndDate(endDate);
         vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
+        // -----------------------------
+        // API CREATE FLOW (NEW)
+        // -----------------------------
         if (vehicleId == -1) {
-            int newId = vehicleRepo.addVehicle(vehicle);
-            if (newId == -1) return;
-            vehicleId = newId;
-            btnDelete.setVisibility(View.VISIBLE);
-        } else {
-            vehicleRepo.updateVehicle(vehicle);
-        }
 
-        Toast.makeText(this, "Vehicle saved", Toast.LENGTH_SHORT).show();
+            vehicleRepo.addVehicle(vehicle, new VehicleRepository.AddVehicleCallback() {
+
+                @Override
+                public void onSuccess(Vehicle createdVehicle) {
+
+                    vehicleId = createdVehicle.getId().intValue();
+
+                    Toast.makeText(
+                            VehicleDetailActivity.this,
+                            "Vehicle created",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    btnDelete.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onError(String error) {
+
+                    Toast.makeText(
+                            VehicleDetailActivity.this,
+                            error,
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
+            });
+
+        } else {
+
+            vehicleRepo.updateVehicle(vehicle);
+            Toast.makeText(this, "Vehicle updated", Toast.LENGTH_SHORT).show();
+        }
     }
 }

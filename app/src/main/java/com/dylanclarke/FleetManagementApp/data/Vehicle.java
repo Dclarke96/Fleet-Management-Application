@@ -4,11 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(tableName = "vehicles")
 public class Vehicle extends BaseEntity {
 
     @ColumnInfo(name = "title")
-    public String title;  // User-defined vehicle title
+    public String title;
 
     @ColumnInfo(name = "make")
     public String make;
@@ -16,20 +18,22 @@ public class Vehicle extends BaseEntity {
     @ColumnInfo(name = "model")
     public String model;
 
+    // 🔥 FIX: Match backend DTO field name EXACTLY
+    @SerializedName("vehicleYear")
     @ColumnInfo(name = "year")
     public int year;
 
-    @ColumnInfo(name = "location")  // updated from license_plate
+    @ColumnInfo(name = "location")
     public String location;
 
     @ColumnInfo(name = "maintenance_alerts_enabled")
     public boolean maintenanceAlertsEnabled;
 
     @ColumnInfo(name = "start_date")
-    public String startDate; // yyyy-MM-dd
+    public String startDate;
 
     @ColumnInfo(name = "end_date")
-    public String endDate;   // yyyy-MM-dd, nullable if still active
+    public String endDate;
 
     public Vehicle() {}
 
@@ -58,15 +62,16 @@ public class Vehicle extends BaseEntity {
     public String toString() {
         return (title != null && !title.isEmpty() ? title + " - " : "") +
                 year + " " + make + " " + model + " (" + location + ")" +
-                " [" + startDate + " - " + (endDate != null ? endDate : "Present") + "]";
+                " [" + startDate + " - " +
+                (endDate != null && !endDate.isEmpty() ? endDate : "Present") + "]";
     }
 
-    // Getter for ID (from BaseEntity)
+    // BaseEntity ID
     public Long getId() {
         return id;
     }
 
-    // Getters and setters
+    // Getters / Setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
@@ -82,7 +87,10 @@ public class Vehicle extends BaseEntity {
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
-    public boolean isMaintenanceAlertsEnabled() { return maintenanceAlertsEnabled; }
+    public boolean isMaintenanceAlertsEnabled() {
+        return maintenanceAlertsEnabled;
+    }
+
     public void setMaintenanceAlertsEnabled(boolean maintenanceAlertsEnabled) {
         this.maintenanceAlertsEnabled = maintenanceAlertsEnabled;
     }
@@ -96,6 +104,7 @@ public class Vehicle extends BaseEntity {
     @NonNull
     @Override
     public String displayName() {
-        return (title != null && !title.isEmpty() ? title + " - " : "") + make + " " + model;
+        return (title != null && !title.isEmpty() ? title + " - " : "")
+                + make + " " + model;
     }
 }

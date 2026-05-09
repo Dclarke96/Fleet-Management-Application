@@ -1,13 +1,9 @@
 package com.dylanclarke.FleetManagementApp.network;
 
 import com.dylanclarke.FleetManagementApp.data.Vehicle;
-import com.dylanclarke.FleetManagementApp.network.ApiResponse;
-import com.dylanclarke.FleetManagementApp.network.LoginRequest;
 
 import retrofit2.Call;
 import retrofit2.http.*;
-
-import java.util.List;
 
 public interface ApiService {
 
@@ -18,7 +14,7 @@ public interface ApiService {
     Call<ApiResponse<PageResponse<Vehicle>>> getVehicles();
 
     @POST("/api/vehicles")
-    Call<Vehicle> addVehicle(@Body Vehicle vehicle);
+    Call<ApiResponse<Vehicle>> addVehicle(@Body VehicleRequest request);
 
     @DELETE("/api/vehicles/{id}")
     Call<Void> deleteVehicle(@Path("id") Long id);
