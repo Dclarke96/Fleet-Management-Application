@@ -29,7 +29,7 @@ public class VehicleRepositoryTest {
         vehicleRepo = new VehicleRepository(context);
 
         // Clean DB before test
-        List<Vehicle> allVehicles = vehicleRepo.getAllVehicles();
+        List<Vehicle> allVehicles = vehicleRepo.getAllVehiclesLocal();
         for (Vehicle v : allVehicles) {
             vehicleRepo.deleteVehicle(v);
         }
@@ -38,7 +38,7 @@ public class VehicleRepositoryTest {
     @After
     public void tearDown() {
         // Clean DB after test
-        List<Vehicle> allVehicles = vehicleRepo.getAllVehicles();
+        List<Vehicle> allVehicles = vehicleRepo.getAllVehiclesLocal();
         for (Vehicle v : allVehicles) {
             vehicleRepo.deleteVehicle(v);
         }
