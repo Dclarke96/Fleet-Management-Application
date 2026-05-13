@@ -261,31 +261,36 @@ public class VehicleListActivity extends AppCompatActivity {
     }
 
     // ---------------------------------------------------------
-    // DELETE VEHICLE
-    // (still direct API/Room hybrid for now)
+    // DELETE VEHICLE API
     // ---------------------------------------------------------
     private void deleteVehicle(Vehicle vehicle) {
 
-        boolean success =
-                repository.deleteVehicle(vehicle);
+        repository.deleteVehicle(
+                vehicle,
+                new VehicleRepository.DeleteVehicleCallback() {
 
-        if (success) {
+                    @Override
+                    public void onSuccess() {
 
-            Toast.makeText(
-                    this,
-                    "Vehicle deleted",
-                    Toast.LENGTH_SHORT
-            ).show();
+                        Toast.makeText(
+                                VehicleListActivity.this,
+                                "Vehicle deleted",
+                                Toast.LENGTH_SHORT
+                        ).show();
 
-            loadVehicles();
+                        loadVehicles();
+                    }
 
-        } else {
+                    @Override
+                    public void onError(String error) {
 
-            Toast.makeText(
-                    this,
-                    "Unable to delete vehicle",
-                    Toast.LENGTH_SHORT
-            ).show();
-        }
+                        Toast.makeText(
+                                VehicleListActivity.this,
+                                error,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
     }
 }

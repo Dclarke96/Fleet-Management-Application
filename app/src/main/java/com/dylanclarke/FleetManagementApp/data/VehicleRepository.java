@@ -60,7 +60,11 @@ public class VehicleRepository {
                             );
 
                         } else {
-                            callback.onError("Failed to load vehicles (HTTP " + response.code() + ")");
+
+                            callback.onError(
+                                    "Failed to load vehicles (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -69,7 +73,10 @@ public class VehicleRepository {
                             Call<ApiResponse<PageResponse<Vehicle>>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+
+                        callback.onError(
+                                "Network error: " + t.getMessage()
+                        );
                     }
                 }
         );
@@ -108,54 +115,73 @@ public class VehicleRepository {
             return;
         }
 
-        // CREATE API REQUEST OBJECT (THIS IS THE KEY FIX)
         VehicleRequest request = new VehicleRequest();
+
         request.title = vehicle.getTitle();
         request.make = vehicle.getMake();
         request.model = vehicle.getModel();
+
+        // IMPORTANT:
+        // Backend expects "vehicleYear"
         request.vehicleYear = vehicle.getYear();
+
         request.location = vehicle.getLocation();
-        request.maintenanceAlertsEnabled = vehicle.isMaintenanceAlertsEnabled();
+        request.maintenanceAlertsEnabled =
+                vehicle.isMaintenanceAlertsEnabled();
+
         request.startDate = vehicle.getStartDate();
         request.endDate = vehicle.getEndDate();
 
-        apiService.addVehicle(request).enqueue(new Callback<ApiResponse<Vehicle>>() {
+        apiService.addVehicle(request)
+                .enqueue(new Callback<ApiResponse<Vehicle>>() {
 
-            @Override
-            public void onResponse(
-                    Call<ApiResponse<Vehicle>> call,
-                    Response<ApiResponse<Vehicle>> response
-            ) {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<Vehicle>> call,
+                            Response<ApiResponse<Vehicle>> response
+                    ) {
 
-                if (response.isSuccessful()
-                        && response.body() != null
-                        && response.body().getData() != null) {
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
 
-                    callback.onSuccess(response.body().getData());
+                            callback.onSuccess(
+                                    response.body().getData()
+                            );
 
-                } else {
+                        } else {
 
-                    String errorBody = "";
-                    try {
-                        if (response.errorBody() != null) {
-                            errorBody = response.errorBody().string();
+                            String errorBody = "";
+
+                            try {
+
+                                if (response.errorBody() != null) {
+                                    errorBody =
+                                            response.errorBody().string();
+                                }
+
+                            } catch (Exception ignored) {}
+
+                            callback.onError(
+                                    "Server error: HTTP "
+                                            + response.code()
+                                            + " "
+                                            + errorBody
+                            );
                         }
-                    } catch (Exception ignored) {}
+                    }
 
-                    callback.onError(
-                            "Server error: HTTP " + response.code() + " " + errorBody
-                    );
-                }
-            }
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<Vehicle>> call,
+                            Throwable t
+                    ) {
 
-            @Override
-            public void onFailure(
-                    Call<ApiResponse<Vehicle>> call,
-                    Throwable t
-            ) {
-                callback.onError("Network error: " + t.getMessage());
-            }
-        });
+                        callback.onError(
+                                "Network error: " + t.getMessage()
+                        );
+                    }
+                });
     }
 
     // ---------------------------------------------------------
@@ -164,9 +190,11 @@ public class VehicleRepository {
     public int addVehicle(Vehicle vehicle) {
 
         String validationError = validateVehicle(vehicle);
+
         if (validationError != null) return -1;
 
         long id = db.vehicleDao().insertVehicle(vehicle);
+
         return (int) id;
     }
 
@@ -185,18 +213,59 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
-    // Delete (Room for now)
+    // API DELETE VEHICLE
+    // ---------------------------------------------------------
+    public void deleteVehicle(
+            Vehicle vehicle,
+            DeleteVehicleCallback callback
+    ) {
+
+        if (vehicle.getId() == null) {
+
+            callback.onError("Vehicle ID is null");
+            return;
+        }
+
+        apiService.deleteVehicle(vehicle.getId())
+                .enqueue(new Callback<Void>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<Void> call,
+                            Response<Void> response
+                    ) {
+
+                        if (response.isSuccessful()) {
+
+                            callback.onSuccess();
+
+                        } else {
+
+                            callback.onError(
+                                    "Delete failed: HTTP "
+                                            + response.code()
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<Void> call,
+                            Throwable t
+                    ) {
+
+                        callback.onError(
+                                "Network error: "
+                                        + t.getMessage()
+                        );
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
+    // LOCAL DELETE (used for tests)
     // ---------------------------------------------------------
     public boolean deleteVehicle(Vehicle vehicle) {
-
-        int count = db.maintenanceDao()
-                .countMaintenanceForVehicle(
-                        vehicle.getId().intValue()
-                );
-
-        if (count > 0) {
-            return false;
-        }
 
         db.vehicleDao().deleteVehicle(vehicle);
 
@@ -216,14 +285,19 @@ public class VehicleRepository {
         void onError(String error);
     }
 
+    public interface DeleteVehicleCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
     // ---------------------------------------------------------
     // VALIDATION
     // ---------------------------------------------------------
     private String validateVehicle(Vehicle vehicle) {
 
-        if (vehicle.getMake().isEmpty() ||
-                vehicle.getModel().isEmpty() ||
-                vehicle.getLocation().isEmpty()) {
+        if (vehicle.getMake().isEmpty()
+                || vehicle.getModel().isEmpty()
+                || vehicle.getLocation().isEmpty()) {
 
             return "Make, model, and location are required";
         }
@@ -234,7 +308,8 @@ public class VehicleRepository {
         if (vehicle.getYear() < 1900
                 || vehicle.getYear() > currentYear) {
 
-            return "Year must be between 1900 and " + currentYear;
+            return "Year must be between 1900 and "
+                    + currentYear;
         }
 
         try {
@@ -247,7 +322,9 @@ public class VehicleRepository {
                     && !vehicle.getEndDate().isEmpty()) {
 
                 if (sdf.parse(vehicle.getEndDate())
-                        .before(sdf.parse(vehicle.getStartDate()))) {
+                        .before(
+                                sdf.parse(vehicle.getStartDate())
+                        )) {
 
                     return "End date cannot be before start date";
                 }
