@@ -19,6 +19,9 @@ public interface ApiService {
     @GET("/api/vehicles/{id}")
     Call<ApiResponse<Vehicle>> getVehicleById(@Path("id") Long id);
 
+    @PUT("/api/vehicles/{id}")
+    Call<ApiResponse<Vehicle>> updateVehicle(@Path("id") long id, @Body VehicleRequest request);
+
     @DELETE("/api/vehicles/{id}")
     Call<Void> deleteVehicle(@Path("id") Long id);
 }

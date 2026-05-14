@@ -242,6 +242,80 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
+    // API UPDATE VEHICLE
+    // ---------------------------------------------------------
+    public void updateVehicle(
+            Vehicle vehicle,
+            UpdateVehicleCallback callback
+    ) {
+
+        String validationError = validateVehicle(vehicle);
+
+        if (validationError != null) {
+
+            callback.onError(validationError);
+            return;
+        }
+
+        if (vehicle.getId() == null) {
+
+            callback.onError("Vehicle ID is null");
+            return;
+        }
+
+        VehicleRequest request = new VehicleRequest();
+
+        request.title = vehicle.getTitle();
+        request.make = vehicle.getMake();
+        request.model = vehicle.getModel();
+        request.vehicleYear = vehicle.getYear();
+        request.location = vehicle.getLocation();
+        request.maintenanceAlertsEnabled =
+                vehicle.isMaintenanceAlertsEnabled();
+        request.startDate = vehicle.getStartDate();
+        request.endDate = vehicle.getEndDate();
+
+        apiService.updateVehicle(vehicle.getId(), request)
+                .enqueue(new Callback<ApiResponse<Vehicle>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<Vehicle>> call,
+                            Response<ApiResponse<Vehicle>> response
+                    ) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(
+                                    response.body().getData()
+                            );
+
+                        } else {
+
+                            callback.onError(
+                                    "Update failed: HTTP "
+                                            + response.code()
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<Vehicle>> call,
+                            Throwable t
+                    ) {
+
+                        callback.onError(
+                                "Network error: "
+                                        + t.getMessage()
+                        );
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
     // Update (Room for now)
     // ---------------------------------------------------------
     public boolean updateVehicle(Vehicle vehicle) {
@@ -320,6 +394,11 @@ public class VehicleRepository {
     }
 
     public interface SingleVehicleCallback {
+        void onSuccess(Vehicle vehicle);
+        void onError(String error);
+    }
+
+    public interface UpdateVehicleCallback {
         void onSuccess(Vehicle vehicle);
         void onError(String error);
     }

@@ -237,14 +237,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
             }
         }
 
-        Vehicle vehicle;
-
-        if (vehicleId == -1L) {
-            vehicle = new Vehicle();
-        } else {
-            vehicle = vehicleRepo.getVehicleById((int) vehicleId);
-            if (vehicle == null) vehicle = new Vehicle();
-        }
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(vehicleId);
 
         vehicle.setTitle(title);
         vehicle.setMake(make);
@@ -286,8 +280,37 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         } else {
 
-            vehicleRepo.updateVehicle(vehicle);
-            Toast.makeText(this, "Vehicle updated", Toast.LENGTH_SHORT).show();
+            vehicleRepo.updateVehicle(
+                    vehicle,
+                    new VehicleRepository.UpdateVehicleCallback() {
+
+                        @Override
+                        public void onSuccess(Vehicle updatedVehicle) {
+
+                            runOnUiThread(() -> {
+
+                                Toast.makeText(
+                                        VehicleDetailActivity.this,
+                                        "Vehicle updated",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() -> {
+
+                                Toast.makeText(
+                                        VehicleDetailActivity.this,
+                                        error,
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            });
+                        }
+                    }
+            );
         }
     }
 }
