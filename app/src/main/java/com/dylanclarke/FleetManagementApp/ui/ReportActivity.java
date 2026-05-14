@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dylanclarke.FleetManagementApp.R;
+import com.dylanclarke.FleetManagementApp.data.MaintenanceRecord;
 import com.dylanclarke.FleetManagementApp.data.MaintenanceRepository;
 import com.dylanclarke.FleetManagementApp.data.Vehicle;
 import com.dylanclarke.FleetManagementApp.data.VehicleRepository;
@@ -88,22 +89,44 @@ public class ReportActivity extends AppCompatActivity {
                 new VehicleRepository.VehicleCallback() {
 
                     @Override
-                    public void onSuccess(
-                            List<Vehicle> vehicles
-                    ) {
+                    public void onSuccess(List<Vehicle> vehicles) {
 
-                        rvReport.setAdapter(
-                                new ReportAdapter(
-                                        maintenanceRepo.getAllMaintenance(),
-                                        vehicles
-                                )
+                        // AFTER vehicles load, load maintenance
+                        maintenanceRepo.getAllMaintenance(
+                                new MaintenanceRepository.MaintenanceCallback() {
+
+                                    @Override
+                                    public void onSuccess(List<MaintenanceRecord> maintenanceRecords) {
+
+                                        runOnUiThread(() -> {
+
+                                            rvReport.setAdapter(
+                                                    new ReportAdapter(
+                                                            maintenanceRecords,
+                                                            vehicles
+                                                    )
+                                            );
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+
+                                        runOnUiThread(() -> {
+
+                                            Toast.makeText(
+                                                    ReportActivity.this,
+                                                    error,
+                                                    Toast.LENGTH_LONG
+                                            ).show();
+                                        });
+                                    }
+                                }
                         );
                     }
 
                     @Override
-                    public void onError(
-                            String error
-                    ) {
+                    public void onError(String error) {
 
                         Toast.makeText(
                                 ReportActivity.this,

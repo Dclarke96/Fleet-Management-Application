@@ -1,138 +1,267 @@
 package com.dylanclarke.FleetManagementApp.data;
 
 import android.content.Context;
-import android.widget.Toast;
+
+import com.dylanclarke.FleetManagementApp.network.ApiClient;
+import com.dylanclarke.FleetManagementApp.network.ApiResponse;
+import com.dylanclarke.FleetManagementApp.network.ApiService;
+import com.dylanclarke.FleetManagementApp.network.MaintenanceRequest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// SCALABILITY DESIGN:
-// Repository pattern separates UI from data layer.
-// Allows future expansion to APIs, caching,
-// background sync, or alternative data sources
-// without modifying Activities.
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MaintenanceRepository {
 
     private final AppDatabase db;
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    private final ApiService apiService;
+
+    private final SimpleDateFormat sdf =
+            new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     public MaintenanceRepository(Context context) {
+
         db = AppDatabase.getInstance(context);
+
+        apiService = ApiClient
+                .getClient(context)
+                .create(ApiService.class);
     }
 
-    // Get maintenance records
-    public List<MaintenanceRecord> getMaintenanceForVehicle(int vehicleId) {
-        return db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
+    // ---------------------------------------------------------
+    // API: GET maintenance for vehicle
+    // ---------------------------------------------------------
+    public void getMaintenanceForVehicle(long vehicleId, MaintenanceCallback callback) {
+
+        apiService.getMaintenanceForVehicle(vehicleId)
+                .enqueue(new Callback<ApiResponse<List<MaintenanceRecord>>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<List<MaintenanceRecord>>> call,
+                            Response<ApiResponse<List<MaintenanceRecord>>> response
+                    ) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(response.body().getData());
+
+                        } else {
+
+                            callback.onError("Failed to load maintenance (HTTP " + response.code() + ")");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<List<MaintenanceRecord>>> call,
+                            Throwable t
+                    ) {
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
     }
 
-    public List<MaintenanceRecord> getAllMaintenance() {
-        return db.maintenanceDao().getAllMaintenance();
+    // ---------------------------------------------------------
+    // API: Get all maintenance
+    // ---------------------------------------------------------
+    public void getAllMaintenance(MaintenanceCallback callback) {
+
+        apiService.getMaintenance()
+                .enqueue(new Callback<ApiResponse<List<MaintenanceRecord>>>() {
+
+                    @Override
+                    public void onResponse(Call<ApiResponse<List<MaintenanceRecord>>> call,
+                                           Response<ApiResponse<List<MaintenanceRecord>>> response) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(response.body().getData());
+
+                        } else {
+                            callback.onError("Failed to load maintenance");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<List<MaintenanceRecord>>> call,
+                                          Throwable t) {
+
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
     }
 
+    // ---------------------------------------------------------
+    // LOCAL GET (Room fallback - still used for UI loading)
+    // ---------------------------------------------------------
     public MaintenanceRecord getMaintenanceById(int id) {
         return db.maintenanceDao().getMaintenanceById(id);
     }
 
-    // Add maintenance record
-    public boolean addMaintenance(MaintenanceRecord record, Context context) {
-        if (!validateRecord(record, context)) return false;
-        db.maintenanceDao().insertMaintenance(record);
-        return true;
+    // ---------------------------------------------------------
+    // API: ADD maintenance
+    // ---------------------------------------------------------
+    public void addMaintenance(MaintenanceRecord record,
+                               AddMaintenanceCallback callback) {
+
+        MaintenanceRequest request = new MaintenanceRequest();
+        request.vehicleId = record.getVehicleId();
+        request.description = record.getDescription();
+        request.serviceDate = record.getServiceDate();
+        request.alertsEnabled = record.isAlertsEnabled();
+
+        apiService.addMaintenance(request)
+                .enqueue(new Callback<ApiResponse<MaintenanceRecord>>() {
+
+                    @Override
+                    public void onResponse(Call<ApiResponse<MaintenanceRecord>> call,
+                                           Response<ApiResponse<MaintenanceRecord>> response) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(response.body().getData());
+
+                        } else {
+                            callback.onError("Add failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<MaintenanceRecord>> call,
+                                          Throwable t) {
+
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
     }
 
-    // Update maintenance record
-    public boolean updateMaintenance(MaintenanceRecord record, Context context) {
-        if (!validateRecord(record, context)) return false;
-        db.maintenanceDao().updateMaintenance(record);
-        return true;
+    // ---------------------------------------------------------
+    // API: UPDATE maintenance
+    // ---------------------------------------------------------
+    public void updateMaintenance(MaintenanceRecord record,
+                                  UpdateMaintenanceCallback callback) {
+
+        MaintenanceRequest request = new MaintenanceRequest();
+        request.vehicleId = record.getVehicleId();
+        request.description = record.getDescription();
+        request.serviceDate = record.getServiceDate();
+        request.alertsEnabled = record.isAlertsEnabled();
+
+        apiService.updateMaintenance(record.getId(), request)
+                .enqueue(new Callback<ApiResponse<MaintenanceRecord>>() {
+
+                    @Override
+                    public void onResponse(Call<ApiResponse<MaintenanceRecord>> call,
+                                           Response<ApiResponse<MaintenanceRecord>> response) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(response.body().getData());
+
+                        } else {
+                            callback.onError("Update failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<MaintenanceRecord>> call,
+                                          Throwable t) {
+
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
     }
 
-    // Delete maintenance record
-    public void deleteMaintenance(MaintenanceRecord record) {
+    // ---------------------------------------------------------
+    // API: DELETE maintenance
+    // ---------------------------------------------------------
+    public void deleteMaintenance(long id, DeleteMaintenanceCallback callback) {
+
+        apiService.deleteMaintenance(id)
+                .enqueue(new Callback<Void>() {
+
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+
+                        if (response.isSuccessful()) {
+                            callback.onSuccess();
+                        } else {
+                            callback.onError("Delete failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
+    // LOCAL (TEMP - keep for now)
+    // ---------------------------------------------------------
+    public List<MaintenanceRecord> getMaintenanceForVehicleLocal(int vehicleId) {
+        return db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
+    }
+
+    public void deleteMaintenanceLocal(MaintenanceRecord record) {
         db.maintenanceDao().deleteMaintenance(record);
     }
 
-    public void deleteMaintenanceById(int id) {
-        db.maintenanceDao().deleteMaintenanceById(id);
-    }
+    // ---------------------------------------------------------
+    // VALIDATION (kept simple for now)
+    // ---------------------------------------------------------
+    private String validateRecord(MaintenanceRecord record) {
 
-    public Vehicle getVehicleFor(int vehicleId) {
-        return db.vehicleDao().getVehicleById(vehicleId);
-    }
-
-    // -----------------------------------------------------------
-    // SECURITY: Centralized Input Validation
-    // Ensures:
-    // - Required fields are present
-    // - Date formats are valid
-    // - Service dates fall within allowed vehicle ranges
-    // - Related vehicle exists before saving maintenance
-    // Prevents invalid data entry and protects database integrity
-    // -----------------------------------------------------------
-
-    // --------- Validation ---------
-    private boolean validateRecord(MaintenanceRecord record, Context context) {
-
-        // Required fields
-        if (record.getDescription() == null || record.getDescription().trim().isEmpty() ||
-                record.getServiceDate() == null || record.getServiceDate().trim().isEmpty()) {
-
-            Toast.makeText(context, "Description and service date are required", Toast.LENGTH_SHORT).show();
-            return false;
+        if (record.getDescription() == null || record.getDescription().trim().isEmpty()
+                || record.getServiceDate() == null || record.getServiceDate().trim().isEmpty()) {
+            return "Description and service date are required";
         }
 
-        // Minimum description length
-        if (record.getDescription().length() < 3) {
-            Toast.makeText(context, "Description must be at least 3 characters", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        // Validate service date format
-        Date serviceDate;
         try {
             sdf.setLenient(false);
-            serviceDate = sdf.parse(record.getServiceDate());
+            sdf.parse(record.getServiceDate());
         } catch (ParseException e) {
-            Toast.makeText(context, "Invalid date format (yyyy-MM-dd)", Toast.LENGTH_SHORT).show();
-            return false;
+            return "Invalid date format (yyyy-MM-dd)";
         }
 
-        // Prevent past dates
-        if (serviceDate.before(new Date())) {
-            Toast.makeText(context, "Service date cannot be in the past", Toast.LENGTH_SHORT).show();
-            return false;
-        }
+        return null;
+    }
 
-        // Vehicle must exist
-        Vehicle vehicle = db.vehicleDao().getVehicleById(record.getVehicleId());
-        if (vehicle == null) {
-            Toast.makeText(context, "Associated vehicle not found", Toast.LENGTH_SHORT).show();
-            return false;
-        }
+    // ---------------------------------------------------------
+    // CALLBACKS
+    // ---------------------------------------------------------
+    public interface MaintenanceCallback {
+        void onSuccess(List<MaintenanceRecord> records);
+        void onError(String error);
+    }
 
-        try {
-            Date startDate = sdf.parse(vehicle.getStartDate());
+    public interface AddMaintenanceCallback {
+        void onSuccess(MaintenanceRecord record);
+        void onError(String error);
+    }
 
-            Date endDate = null;
-            if (vehicle.getEndDate() != null && !vehicle.getEndDate().isEmpty()) {
-                endDate = sdf.parse(vehicle.getEndDate());
-            }
+    public interface UpdateMaintenanceCallback {
+        void onSuccess(MaintenanceRecord record);
+        void onError(String error);
+    }
 
-            if (serviceDate.before(startDate)) {
-                Toast.makeText(context, "Service date cannot be before vehicle start date", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-
-            if (endDate != null && serviceDate.after(endDate)) {
-                Toast.makeText(context, "Service date cannot be after vehicle end date", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-
-        } catch (ParseException ignored) {}
-
-        return true;
+    public interface DeleteMaintenanceCallback {
+        void onSuccess();
+        void onError(String error);
     }
 }

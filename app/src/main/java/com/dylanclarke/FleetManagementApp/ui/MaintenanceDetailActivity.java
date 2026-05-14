@@ -105,12 +105,52 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         record.setServiceDate(editDate.getText().toString().trim());
         record.setAlertsEnabled(switchAlert.isChecked());
 
-        // ✅ Use repository to handle validation and insertion/update
-        boolean success = isNew
-                ? maintenanceRepo.addMaintenance(record, this)
-                : maintenanceRepo.updateMaintenance(record, this);
+        if (isNew) {
 
-        if (!success) return; // validation failed, repository already shows Toast
+            maintenanceRepo.addMaintenance(record, new MaintenanceRepository.AddMaintenanceCallback() {
+
+                @Override
+                public void onSuccess(MaintenanceRecord created) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MaintenanceDetailActivity.this,
+                                "Maintenance created",
+                                Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() ->
+                            Toast.makeText(MaintenanceDetailActivity.this,
+                                    error,
+                                    Toast.LENGTH_LONG).show());
+                }
+            });
+
+        } else {
+
+            maintenanceRepo.updateMaintenance(record, new MaintenanceRepository.UpdateMaintenanceCallback() {
+
+                @Override
+                public void onSuccess(MaintenanceRecord updated) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MaintenanceDetailActivity.this,
+                                "Maintenance updated",
+                                Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() ->
+                            Toast.makeText(MaintenanceDetailActivity.this,
+                                    error,
+                                    Toast.LENGTH_LONG).show());
+                }
+            });
+        }
 
         if (record.isAlertsEnabled()) {
             scheduleMaintenanceAlert(record.getDescription(), record.getServiceDate());
