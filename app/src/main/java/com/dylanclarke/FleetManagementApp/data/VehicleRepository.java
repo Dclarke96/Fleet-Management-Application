@@ -90,6 +90,49 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
+    // API GET VEHICLE BY ID
+    // ---------------------------------------------------------
+    public void getVehicleById(Long vehicleId, SingleVehicleCallback callback) {
+
+        apiService.getVehicleById(vehicleId)
+                .enqueue(new Callback<ApiResponse<Vehicle>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<Vehicle>> call,
+                            Response<ApiResponse<Vehicle>> response
+                    ) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
+
+                            callback.onSuccess(
+                                    response.body().getData()
+                            );
+
+                        } else {
+
+                            callback.onError(
+                                    "Failed to load vehicle"
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<Vehicle>> call,
+                            Throwable t
+                    ) {
+
+                        callback.onError(
+                                "Network error: " + t.getMessage()
+                        );
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
     // Get vehicle by ID (Room)
     // ---------------------------------------------------------
     public Vehicle getVehicleById(int id) {
@@ -213,20 +256,11 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
-    // API DELETE VEHICLE
+    // API DELETE VEHICLE BY ID
     // ---------------------------------------------------------
-    public void deleteVehicle(
-            Vehicle vehicle,
-            DeleteVehicleCallback callback
-    ) {
+    public void deleteVehicle(long vehicleId, DeleteVehicleCallback callback) {
 
-        if (vehicle.getId() == null) {
-
-            callback.onError("Vehicle ID is null");
-            return;
-        }
-
-        apiService.deleteVehicle(vehicle.getId())
+        apiService.deleteVehicle(vehicleId)
                 .enqueue(new Callback<Void>() {
 
                     @Override
@@ -281,6 +315,11 @@ public class VehicleRepository {
     }
 
     public interface AddVehicleCallback {
+        void onSuccess(Vehicle vehicle);
+        void onError(String error);
+    }
+
+    public interface SingleVehicleCallback {
         void onSuccess(Vehicle vehicle);
         void onError(String error);
     }

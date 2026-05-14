@@ -265,30 +265,47 @@ public class VehicleListActivity extends AppCompatActivity {
     // ---------------------------------------------------------
     private void deleteVehicle(Vehicle vehicle) {
 
+        if (vehicle.getId() == null) {
+
+            Toast.makeText(
+                    this,
+                    "Vehicle ID is null",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
         repository.deleteVehicle(
-                vehicle,
+                vehicle.getId(),
                 new VehicleRepository.DeleteVehicleCallback() {
 
                     @Override
                     public void onSuccess() {
 
-                        Toast.makeText(
-                                VehicleListActivity.this,
-                                "Vehicle deleted",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        runOnUiThread(() -> {
 
-                        loadVehicles();
+                            Toast.makeText(
+                                    VehicleListActivity.this,
+                                    "Vehicle deleted",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            loadVehicles();
+                        });
                     }
 
                     @Override
                     public void onError(String error) {
 
-                        Toast.makeText(
-                                VehicleListActivity.this,
-                                error,
-                                Toast.LENGTH_LONG
-                        ).show();
+                        runOnUiThread(() ->
+
+                                Toast.makeText(
+                                        VehicleListActivity.this,
+                                        error,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                        );
                     }
                 }
         );

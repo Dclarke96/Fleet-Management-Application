@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dylanclarke.FleetManagementApp.R;
@@ -22,7 +23,9 @@ public class VehicleDetailActivity extends AppCompatActivity {
     private Button btnSave, btnBack, btnAddMaintenance, btnManageMaintenance, btnDelete, btnShare;
 
     private VehicleRepository vehicleRepo;
-    private int vehicleId = -1;
+
+    // IMPORTANT: must be long to match backend IDs (fixes crash)
+    private long vehicleId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,29 +49,28 @@ public class VehicleDetailActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.btnDelete);
         btnShare = findViewById(R.id.btnShare);
 
-        // Initialize repository
         vehicleRepo = new VehicleRepository(getApplicationContext());
 
-        // Check if editing existing vehicle
+        // FIX: use getLongExtra (prevents ClassCastException crash)
         if (getIntent().hasExtra("vehicleId")) {
-            vehicleId = getIntent().getIntExtra("vehicleId", -1);
-            if (vehicleId != -1) {
+            vehicleId = getIntent().getLongExtra("vehicleId", -1L);
+
+            if (vehicleId != -1L) {
                 loadVehicle();
                 btnDelete.setVisibility(View.VISIBLE);
             }
         }
 
-        // Date picker setup
         Calendar calendar = Calendar.getInstance();
+
         editStartDate.setOnClickListener(v -> showDatePicker(editStartDate, calendar));
         editEndDate.setOnClickListener(v -> showDatePicker(editEndDate, calendar));
 
-        // Button listeners
         btnSave.setOnClickListener(v -> saveVehicle());
         btnBack.setOnClickListener(v -> finish());
 
         btnAddMaintenance.setOnClickListener(v -> {
-            if (vehicleId == -1) {
+            if (vehicleId == -1L) {
                 Toast.makeText(this, "Save vehicle first", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -78,7 +80,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         });
 
         btnManageMaintenance.setOnClickListener(v -> {
-            if (vehicleId == -1) {
+            if (vehicleId == -1L) {
                 Toast.makeText(this, "Save vehicle first", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -87,41 +89,71 @@ public class VehicleDetailActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Delete button listener
         btnDelete.setOnClickListener(v -> {
-            if (vehicleId == -1) return;
+
+            if (vehicleId == -1L) return;
+
             new AlertDialog.Builder(this)
                     .setTitle("Delete Vehicle")
                     .setMessage("Are you sure you want to delete this vehicle? This cannot be undone.")
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
-                        if (vehicle != null && vehicleRepo.deleteVehicle(vehicle)) {
-                            Toast.makeText(this, "Vehicle deleted", Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
+
+                        vehicleRepo.deleteVehicle(
+                                vehicleId,
+                                new VehicleRepository.DeleteVehicleCallback() {
+
+                                    @Override
+                                    public void onSuccess() {
+
+                                        runOnUiThread(() -> {
+
+                                            Toast.makeText(
+                                                    VehicleDetailActivity.this,
+                                                    "Vehicle deleted",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
+
+                                            finish();
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+
+                                        runOnUiThread(() -> {
+
+                                            Toast.makeText(
+                                                    VehicleDetailActivity.this,
+                                                    error,
+                                                    Toast.LENGTH_LONG
+                                            ).show();
+                                        });
+                                    }
+                                }
+                        );
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
         });
 
-        // Share button listener
         btnShare.setOnClickListener(v -> {
-            if (vehicleId == -1) {
+            if (vehicleId == -1L) {
                 Toast.makeText(this, "Save vehicle first", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
+            Vehicle vehicle = vehicleRepo.getVehicleById((int) vehicleId);
             if (vehicle == null) return;
 
-            String vehicleInfo = "Vehicle Info:\n" +
-                    "Name: " + vehicle.getTitle() + "\n" +
-                    "Make: " + vehicle.getMake() + "\n" +
-                    "Model: " + vehicle.getModel() + "\n" +
-                    "Year: " + vehicle.getYear() + "\n" +
-                    "Location: " + vehicle.getLocation() + "\n" +
-                    "Start Date: " + vehicle.getStartDate() + "\n" +
-                    "End Date: " + vehicle.getEndDate();
+            String vehicleInfo =
+                    "Vehicle Info:\n" +
+                            "Name: " + vehicle.getTitle() + "\n" +
+                            "Make: " + vehicle.getMake() + "\n" +
+                            "Model: " + vehicle.getModel() + "\n" +
+                            "Year: " + vehicle.getYear() + "\n" +
+                            "Location: " + vehicle.getLocation() + "\n" +
+                            "Start Date: " + vehicle.getStartDate() + "\n" +
+                            "End Date: " + vehicle.getEndDate();
 
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
@@ -142,18 +174,41 @@ public class VehicleDetailActivity extends AppCompatActivity {
         ).show();
     }
 
+    // -----------------------------
+    // FIXED LOAD (API CONSISTENT)
+    // -----------------------------
     private void loadVehicle() {
-        Vehicle vehicle = vehicleRepo.getVehicleById(vehicleId);
-        if (vehicle == null) return;
 
-        editTitle.setText(vehicle.getTitle()); // properly load title
-        editMake.setText(vehicle.getMake());
-        editModel.setText(vehicle.getModel());
-        editYear.setText(vehicle.getYear() > 0 ? String.valueOf(vehicle.getYear()) : "");
-        editLocation.setText(vehicle.getLocation());
-        editStartDate.setText(vehicle.getStartDate());
-        editEndDate.setText(vehicle.getEndDate());
-        switchAlert.setChecked(vehicle.isMaintenanceAlertsEnabled());
+        vehicleRepo.getVehicleById(vehicleId, new VehicleRepository.SingleVehicleCallback() {
+                    @Override
+                    public void onSuccess(Vehicle vehicle) {
+
+                        editTitle.setText(vehicle.getTitle());
+                        editMake.setText(vehicle.getMake());
+                        editModel.setText(vehicle.getModel());
+
+                        editYear.setText(
+                                vehicle.getYear() > 0
+                                        ? String.valueOf(vehicle.getYear())
+                                        : ""
+                        );
+
+                        editLocation.setText(vehicle.getLocation());
+                        editStartDate.setText(vehicle.getStartDate());
+                        editEndDate.setText(vehicle.getEndDate());
+                        switchAlert.setChecked(vehicle.isMaintenanceAlertsEnabled());
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(
+                                VehicleDetailActivity.this,
+                                error,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
     }
 
     private void saveVehicle() {
@@ -184,10 +239,10 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         Vehicle vehicle;
 
-        if (vehicleId == -1) {
+        if (vehicleId == -1L) {
             vehicle = new Vehicle();
         } else {
-            vehicle = vehicleRepo.getVehicleById(vehicleId);
+            vehicle = vehicleRepo.getVehicleById((int) vehicleId);
             if (vehicle == null) vehicle = new Vehicle();
         }
 
@@ -200,17 +255,14 @@ public class VehicleDetailActivity extends AppCompatActivity {
         vehicle.setEndDate(endDate);
         vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
-        // -----------------------------
-        // API CREATE FLOW (NEW)
-        // -----------------------------
-        if (vehicleId == -1) {
+        if (vehicleId == -1L) {
 
             vehicleRepo.addVehicle(vehicle, new VehicleRepository.AddVehicleCallback() {
 
                 @Override
                 public void onSuccess(Vehicle createdVehicle) {
 
-                    vehicleId = createdVehicle.getId().intValue();
+                    vehicleId = createdVehicle.getId();
 
                     Toast.makeText(
                             VehicleDetailActivity.this,
