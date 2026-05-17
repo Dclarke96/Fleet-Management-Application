@@ -28,7 +28,6 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     private EditText editDescription, editDate, editCost;
     private Switch switchAlert;
     private Button btnSave, btnBack;
-
     private MaintenanceRepository maintenanceRepo;
     private long vehicleId;
     private int maintenanceId = -1;

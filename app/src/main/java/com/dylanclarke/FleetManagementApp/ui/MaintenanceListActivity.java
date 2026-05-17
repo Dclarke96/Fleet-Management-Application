@@ -103,12 +103,38 @@ public class MaintenanceListActivity extends AppCompatActivity {
                                 });
 
                                 btnDelete.setOnClickListener(v -> {
-                                    // we will migrate delete next step
-                                    Toast.makeText(
-                                            MaintenanceListActivity.this,
-                                            "Delete migration next step",
-                                            Toast.LENGTH_SHORT
-                                    ).show();
+
+                                    maintenanceRepo.deleteMaintenance(
+                                            record.getId(),
+                                            new MaintenanceRepository.DeleteMaintenanceCallback() {
+
+                                                @Override
+                                                public void onSuccess() {
+
+                                                    runOnUiThread(() -> {
+                                                        Toast.makeText(
+                                                                MaintenanceListActivity.this,
+                                                                "Deleted",
+                                                                Toast.LENGTH_SHORT
+                                                        ).show();
+
+                                                        loadMaintenanceRecords(); // refresh list
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onError(String error) {
+
+                                                    runOnUiThread(() ->
+                                                            Toast.makeText(
+                                                                    MaintenanceListActivity.this,
+                                                                    error,
+                                                                    Toast.LENGTH_LONG
+                                                            ).show()
+                                                    );
+                                                }
+                                            }
+                                    );
                                 });
 
                                 maintenanceContainer.addView(item);
