@@ -34,6 +34,11 @@ public interface ApiService {
     @GET("/api/maintenance/vehicle/{vehicleId}")
     Call<ApiResponse<List<MaintenanceRecord>>> getMaintenanceForVehicle(@Path("vehicleId") long vehicleId);
 
+    @GET("/api/maintenance/{id}")
+    Call<ApiResponse<MaintenanceRecord>> getMaintenanceById(
+            @Path("id") long id
+    );
+
     @POST("/api/maintenance")
     Call<ApiResponse<MaintenanceRecord>> addMaintenance(@Body MaintenanceRequest request);
 

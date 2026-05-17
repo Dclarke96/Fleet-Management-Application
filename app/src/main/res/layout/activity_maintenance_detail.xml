@@ -25,6 +25,14 @@
             android:focusable="false"
             android:clickable="true" />
 
+        <EditText
+            android:id="@+id/editMaintenanceCost"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Cost"
+            android:inputType="numberDecimal"
+            android:padding="12dp" />
+
         <Switch
             android:id="@+id/switchAlert"
             android:layout_width="wrap_content"

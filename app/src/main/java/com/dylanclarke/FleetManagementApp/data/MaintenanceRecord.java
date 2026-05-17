@@ -32,12 +32,20 @@ public class MaintenanceRecord extends BaseEntity {
     @ColumnInfo(name = "vehicle_id")
     private int vehicleId;
 
+    @ColumnInfo(name = "cost")
+    private double cost;
+
     public MaintenanceRecord() {}
 
-    public MaintenanceRecord(@NonNull String description, @NonNull String serviceDate,
-                             boolean alertsEnabled, int vehicleId) {
+    public MaintenanceRecord(@NonNull String description,
+                             @NonNull String serviceDate,
+                             double cost,
+                             boolean alertsEnabled,
+                             int vehicleId) {
+
         this.description = description;
         this.serviceDate = serviceDate;
+        this.cost = cost;
         this.alertsEnabled = alertsEnabled;
         this.vehicleId = vehicleId;
     }
@@ -54,6 +62,14 @@ public class MaintenanceRecord extends BaseEntity {
 
     public int getVehicleId() { return vehicleId; }
     public void setVehicleId(int vehicleId) { this.vehicleId = vehicleId; }
+
+    public double getCost() {
+        return cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
 
     // Polymorphism
     @NonNull

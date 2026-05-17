@@ -25,12 +25,12 @@ import java.util.Locale;
 
 public class MaintenanceDetailActivity extends AppCompatActivity {
 
-    private EditText editDescription, editDate;
+    private EditText editDescription, editDate, editCost;
     private Switch switchAlert;
     private Button btnSave, btnBack;
 
     private MaintenanceRepository maintenanceRepo;
-    private int vehicleId;
+    private long vehicleId;
     private int maintenanceId = -1;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
@@ -42,6 +42,10 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
 
         editDescription = findViewById(R.id.editMaintenanceTitle);
         editDate = findViewById(R.id.editMaintenanceDate);
+
+        // NEW
+        editCost = findViewById(R.id.editMaintenanceCost);
+
         switchAlert = findViewById(R.id.switchAlert);
         btnSave = findViewById(R.id.btnSaveMaintenance);
         btnBack = findViewById(R.id.backButton);
@@ -49,7 +53,7 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         maintenanceRepo = new MaintenanceRepository(getApplicationContext());
 
         if (getIntent().hasExtra("vehicleId")) {
-            vehicleId = getIntent().getIntExtra("vehicleId", -1);
+            vehicleId = getIntent().getLongExtra("vehicleId", -1L);
         }
 
         if (getIntent().hasExtra("maintenanceId")) {
@@ -77,117 +81,231 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
     }
 
     private void loadMaintenance() {
-        MaintenanceRecord record = maintenanceRepo.getMaintenanceById(maintenanceId);
-        if (record != null) {
-            editDescription.setText(record.getDescription());
-            editDate.setText(record.getServiceDate());
-            switchAlert.setChecked(record.isAlertsEnabled());
-        }
+
+        maintenanceRepo.getMaintenanceById(
+                maintenanceId,
+                new MaintenanceRepository.SingleMaintenanceCallback() {
+
+                    @Override
+                    public void onSuccess(MaintenanceRecord record) {
+
+                        runOnUiThread(() -> {
+
+                            editDescription.setText(record.getDescription());
+                            editDate.setText(record.getServiceDate());
+
+                            // NEW
+                            editCost.setText(String.valueOf(record.getCost()));
+
+                            switchAlert.setChecked(record.isAlertsEnabled());
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() ->
+                                Toast.makeText(
+                                        MaintenanceDetailActivity.this,
+                                        error,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                        );
+                    }
+                }
+        );
     }
 
     private void saveMaintenance() {
+
         MaintenanceRecord record;
         boolean isNew = maintenanceId == -1;
 
         if (isNew) {
+
             record = new MaintenanceRecord();
-            record.setVehicleId(vehicleId);
+            record.setVehicleId((int)vehicleId);
+
         } else {
-            record = maintenanceRepo.getMaintenanceById(maintenanceId);
-            if (record == null) {
-                record = new MaintenanceRecord();
-                record.setVehicleId(vehicleId);
-                isNew = true;
+
+            record = new MaintenanceRecord();
+
+            // IMPORTANT
+            record.setId((long) maintenanceId);
+
+            record.setVehicleId((int)vehicleId);
+        }
+
+        String costText = editCost.getText().toString().trim();
+
+        double cost = 0;
+
+        if (!costText.isEmpty()) {
+
+            try {
+
+                cost = Double.parseDouble(costText);
+
+            } catch (NumberFormatException e) {
+
+                Toast.makeText(
+                        this,
+                        "Cost must be a valid number",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
             }
         }
 
         record.setDescription(editDescription.getText().toString().trim());
         record.setServiceDate(editDate.getText().toString().trim());
+
+        // NEW
+        record.setCost(cost);
+
         record.setAlertsEnabled(switchAlert.isChecked());
 
         if (isNew) {
 
-            maintenanceRepo.addMaintenance(record, new MaintenanceRepository.AddMaintenanceCallback() {
+            maintenanceRepo.addMaintenance(
+                    record,
+                    new MaintenanceRepository.AddMaintenanceCallback() {
 
-                @Override
-                public void onSuccess(MaintenanceRecord created) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(MaintenanceDetailActivity.this,
-                                "Maintenance created",
-                                Toast.LENGTH_SHORT).show();
-                        finish();
-                    });
-                }
+                        @Override
+                        public void onSuccess(MaintenanceRecord created) {
 
-                @Override
-                public void onError(String error) {
-                    runOnUiThread(() ->
-                            Toast.makeText(MaintenanceDetailActivity.this,
-                                    error,
-                                    Toast.LENGTH_LONG).show());
-                }
-            });
+                            runOnUiThread(() -> {
+
+                                if (record.isAlertsEnabled()) {
+                                    scheduleMaintenanceAlert(
+                                            record.getDescription(),
+                                            record.getServiceDate()
+                                    );
+                                }
+
+                                Toast.makeText(
+                                        MaintenanceDetailActivity.this,
+                                        "Maintenance created",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                finish();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() ->
+                                    Toast.makeText(
+                                            MaintenanceDetailActivity.this,
+                                            error,
+                                            Toast.LENGTH_LONG
+                                    ).show()
+                            );
+                        }
+                    }
+            );
 
         } else {
 
-            maintenanceRepo.updateMaintenance(record, new MaintenanceRepository.UpdateMaintenanceCallback() {
+            maintenanceRepo.updateMaintenance(
+                    record,
+                    new MaintenanceRepository.UpdateMaintenanceCallback() {
 
-                @Override
-                public void onSuccess(MaintenanceRecord updated) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(MaintenanceDetailActivity.this,
-                                "Maintenance updated",
-                                Toast.LENGTH_SHORT).show();
-                        finish();
-                    });
-                }
+                        @Override
+                        public void onSuccess(MaintenanceRecord updated) {
 
-                @Override
-                public void onError(String error) {
-                    runOnUiThread(() ->
-                            Toast.makeText(MaintenanceDetailActivity.this,
-                                    error,
-                                    Toast.LENGTH_LONG).show());
-                }
-            });
+                            runOnUiThread(() -> {
+
+                                if (record.isAlertsEnabled()) {
+                                    scheduleMaintenanceAlert(
+                                            record.getDescription(),
+                                            record.getServiceDate()
+                                    );
+                                }
+
+                                Toast.makeText(
+                                        MaintenanceDetailActivity.this,
+                                        "Maintenance updated",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                finish();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() ->
+                                    Toast.makeText(
+                                            MaintenanceDetailActivity.this,
+                                            error,
+                                            Toast.LENGTH_LONG
+                                    ).show()
+                            );
+                        }
+                    }
+            );
         }
-
-        if (record.isAlertsEnabled()) {
-            scheduleMaintenanceAlert(record.getDescription(), record.getServiceDate());
-        }
-
-        Toast.makeText(this, "Maintenance saved", Toast.LENGTH_SHORT).show();
-        finish();
     }
 
     private void scheduleMaintenanceAlert(String description, String serviceDate) {
+
         long triggerTime = parseDateToMillis(serviceDate);
+
         if (triggerTime < System.currentTimeMillis()) {
-            Toast.makeText(this, "Alert date must not be in the past", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(
+                    this,
+                    "Alert date must not be in the past",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             return;
         }
 
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, MaintenanceAlertReceiver.class);
+        AlarmManager alarmManager =
+                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent =
+                new Intent(this, MaintenanceAlertReceiver.class);
+
         intent.putExtra("maintenanceDescription", description);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                description.hashCode(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(
+                        this,
+                        description.hashCode(),
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                                | PendingIntent.FLAG_IMMUTABLE
+                );
 
         if (alarmManager != null) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+
+            alarmManager.set(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+            );
         }
     }
 
     private long parseDateToMillis(String dateStr) {
+
         try {
+
             Date date = sdf.parse(dateStr);
-            return date != null ? date.getTime() : -1;
+
+            return date != null
+                    ? date.getTime()
+                    : -1;
+
         } catch (ParseException e) {
+
             return -1;
         }
     }

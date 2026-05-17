@@ -4,6 +4,7 @@ public class MaintenanceRequest {
 
     public long vehicleId;
     public String description;
-    public String serviceDate;
+    public String date;
+    public double cost;
     public boolean alertsEnabled;
 }
