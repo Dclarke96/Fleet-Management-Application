@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.dylanclarke.FleetManagementApp.R;
 import com.dylanclarke.FleetManagementApp.data.AppDatabase;
 import com.dylanclarke.FleetManagementApp.data.MaintenanceRecord;
+import com.dylanclarke.FleetManagementApp.data.MaintenanceRepository;
 
 import java.util.List;
 
@@ -18,8 +19,8 @@ import java.util.List;
 
 public class MaintenanceListActivity extends AppCompatActivity {
 
-    private AppDatabase db;
-    private int vehicleId;
+    private MaintenanceRepository maintenanceRepo;
+    private long vehicleId;
     private LinearLayout maintenanceContainer;
     private Button btnAddMaintenance, btnBack;
 
@@ -32,10 +33,10 @@ public class MaintenanceListActivity extends AppCompatActivity {
         btnAddMaintenance = findViewById(R.id.btnAddMaintenance);
         btnBack = findViewById(R.id.backButton);
 
-        db = AppDatabase.getInstance(getApplicationContext());
+        maintenanceRepo = new MaintenanceRepository(getApplicationContext());
 
         if (getIntent().hasExtra("vehicleId")) {
-            vehicleId = getIntent().getIntExtra("vehicleId", -1);
+            vehicleId = getIntent().getLongExtra("vehicleId", -1L);
             if (vehicleId != -1) {
                 loadMaintenanceRecords();
             }
@@ -57,34 +58,76 @@ public class MaintenanceListActivity extends AppCompatActivity {
     }
 
     private void loadMaintenanceRecords() {
+
         maintenanceContainer.removeAllViews();
 
-        List<MaintenanceRecord> maintenanceRecords = db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
-        for (MaintenanceRecord record : maintenanceRecords) {
-            View item = getLayoutInflater().inflate(R.layout.item_maintenance_record, null); // Ensure XML matches IDs
+        maintenanceRepo.getMaintenanceForVehicle(
+                vehicleId,
+                new MaintenanceRepository.MaintenanceCallback() {
 
-            TextView txtDescription = item.findViewById(R.id.txtMaintenanceDescription);
-            TextView txtDate = item.findViewById(R.id.txtMaintenanceDate);
-            Button btnEdit = item.findViewById(R.id.btnEditMaintenance);
-            Button btnDelete = item.findViewById(R.id.btnDeleteMaintenance);
+                    @Override
+                    public void onSuccess(List<MaintenanceRecord> records) {
 
-            // Display data
-            txtDescription.setText(record.getDescription());
-            txtDate.setText(record.getServiceDate());
+                        runOnUiThread(() -> {
 
-            btnEdit.setOnClickListener(v -> {
-                Intent intent = new Intent(this, MaintenanceDetailActivity.class);
-                intent.putExtra("maintenanceId", record.getId());
-                intent.putExtra("vehicleId", vehicleId);
-                startActivity(intent);
-            });
+                            for (MaintenanceRecord record : records) {
 
-            btnDelete.setOnClickListener(v -> {
-                db.maintenanceDao().deleteMaintenanceById(record.getId().intValue());
-                loadMaintenanceRecords();
-            });
+                                View item = getLayoutInflater()
+                                        .inflate(R.layout.item_maintenance_record, null);
 
-            maintenanceContainer.addView(item);
-        }
+                                TextView txtDescription =
+                                        item.findViewById(R.id.txtMaintenanceDescription);
+
+                                TextView txtDate =
+                                        item.findViewById(R.id.txtMaintenanceDate);
+
+                                Button btnEdit =
+                                        item.findViewById(R.id.btnEditMaintenance);
+
+                                Button btnDelete =
+                                        item.findViewById(R.id.btnDeleteMaintenance);
+
+                                txtDescription.setText(record.getDescription());
+                                txtDate.setText(record.getServiceDate());
+
+                                btnEdit.setOnClickListener(v -> {
+                                    Intent intent = new Intent(
+                                            MaintenanceListActivity.this,
+                                            MaintenanceDetailActivity.class
+                                    );
+
+                                    intent.putExtra("maintenanceId", record.getId());
+                                    intent.putExtra("vehicleId", vehicleId);
+
+                                    startActivity(intent);
+                                });
+
+                                btnDelete.setOnClickListener(v -> {
+                                    // we will migrate delete next step
+                                    Toast.makeText(
+                                            MaintenanceListActivity.this,
+                                            "Delete migration next step",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                });
+
+                                maintenanceContainer.addView(item);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() ->
+                                Toast.makeText(
+                                        MaintenanceListActivity.this,
+                                        error,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                        );
+                    }
+                }
+        );
     }
 }

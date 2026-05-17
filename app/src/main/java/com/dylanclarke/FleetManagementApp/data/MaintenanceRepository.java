@@ -6,6 +6,7 @@ import com.dylanclarke.FleetManagementApp.network.ApiClient;
 import com.dylanclarke.FleetManagementApp.network.ApiResponse;
 import com.dylanclarke.FleetManagementApp.network.ApiService;
 import com.dylanclarke.FleetManagementApp.network.MaintenanceRequest;
+import com.dylanclarke.FleetManagementApp.network.PageResponse;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,58 +35,75 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // API: GET maintenance for vehicle
+    // GET maintenance for vehicle (API - PAGED)
     // ---------------------------------------------------------
-    public void getMaintenanceForVehicle(long vehicleId, MaintenanceCallback callback) {
+    public void getMaintenanceForVehicle(
+            long vehicleId,
+            MaintenanceCallback callback
+    ) {
 
         apiService.getMaintenanceForVehicle(vehicleId)
-                .enqueue(new Callback<ApiResponse<List<MaintenanceRecord>>>() {
+                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
 
                     @Override
                     public void onResponse(
-                            Call<ApiResponse<List<MaintenanceRecord>>> call,
-                            Response<ApiResponse<List<MaintenanceRecord>>> response
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
                     ) {
 
-                        if (response.isSuccessful()
-                                && response.body() != null
-                                && response.body().getData() != null) {
+                        if (response.body() != null
+                                && response.body().getData() != null
+                                && response.body().getData().content != null) {
 
-                            callback.onSuccess(response.body().getData());
+                            callback.onSuccess(
+                                    response.body()
+                                            .getData()
+                                            .content
+                            );
 
                         } else {
 
-                            callback.onError("Failed to load maintenance (HTTP " + response.code() + ")");
+                            callback.onError(
+                                    "Failed to load maintenance (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
                     @Override
                     public void onFailure(
-                            Call<ApiResponse<List<MaintenanceRecord>>> call,
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
                             Throwable t
                     ) {
+
                         callback.onError("Network error: " + t.getMessage());
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // API: Get all maintenance
+    // GET ALL maintenance (API - PAGED SAFE CONVERSION)
     // ---------------------------------------------------------
     public void getAllMaintenance(MaintenanceCallback callback) {
 
         apiService.getMaintenance()
-                .enqueue(new Callback<ApiResponse<List<MaintenanceRecord>>>() {
+                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
 
                     @Override
-                    public void onResponse(Call<ApiResponse<List<MaintenanceRecord>>> call,
-                                           Response<ApiResponse<List<MaintenanceRecord>>> response) {
+                    public void onResponse(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
+                    ) {
 
-                        if (response.isSuccessful()
-                                && response.body() != null
-                                && response.body().getData() != null) {
+                        if (response.body() != null
+                                && response.body().getData() != null
+                                && response.body().getData().content != null) {
 
-                            callback.onSuccess(response.body().getData());
+                            callback.onSuccess(
+                                    response.body()
+                                            .getData()
+                                            .content
+                            );
 
                         } else {
                             callback.onError("Failed to load maintenance");
@@ -93,8 +111,10 @@ public class MaintenanceRepository {
                     }
 
                     @Override
-                    public void onFailure(Call<ApiResponse<List<MaintenanceRecord>>> call,
-                                          Throwable t) {
+                    public void onFailure(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Throwable t
+                    ) {
 
                         callback.onError("Network error: " + t.getMessage());
                     }
@@ -102,15 +122,8 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // LOCAL GET (Room fallback - still used for UI loading)
+    // GET BY ID
     // ---------------------------------------------------------
-    public MaintenanceRecord getMaintenanceById(int id) {
-        return db.maintenanceDao().getMaintenanceById(id);
-    }
-
-    // ---------------------------------------------------------
-// API: GET maintenance by ID
-// ---------------------------------------------------------
     public void getMaintenanceById(
             long maintenanceId,
             SingleMaintenanceCallback callback
@@ -125,19 +138,13 @@ public class MaintenanceRepository {
                             Response<ApiResponse<MaintenanceRecord>> response
                     ) {
 
-                        if (response.isSuccessful()
-                                && response.body() != null
+                        if (response.body() != null
                                 && response.body().getData() != null) {
 
-                            callback.onSuccess(
-                                    response.body().getData()
-                            );
+                            callback.onSuccess(response.body().getData());
 
                         } else {
-
-                            callback.onError(
-                                    "Failed to load maintenance"
-                            );
+                            callback.onError("Failed to load maintenance");
                         }
                     }
 
@@ -146,17 +153,14 @@ public class MaintenanceRepository {
                             Call<ApiResponse<MaintenanceRecord>> call,
                             Throwable t
                     ) {
-
-                        callback.onError(
-                                "Network error: " + t.getMessage()
-                        );
+                        callback.onError("Network error: " + t.getMessage());
                     }
                 });
     }
 
     // ---------------------------------------------------------
-// API: ADD maintenance
-// ---------------------------------------------------------
+    // ADD maintenance
+    // ---------------------------------------------------------
     public void addMaintenance(
             MaintenanceRecord record,
             AddMaintenanceCallback callback
@@ -166,13 +170,9 @@ public class MaintenanceRepository {
 
         request.vehicleId = (long) record.getVehicleId();
         request.description = record.getDescription();
-
-        // IMPORTANT:
-        // Backend expects "date"
         request.date = record.getServiceDate();
 
-        // TEMP:
-        // Backend currently requires cost
+        // backend requires cost (temporary default)
         request.cost = 0.0;
 
         request.alertsEnabled = record.isAlertsEnabled();
@@ -186,19 +186,15 @@ public class MaintenanceRepository {
                             Response<ApiResponse<MaintenanceRecord>> response
                     ) {
 
-                        if (response.isSuccessful()
-                                && response.body() != null
+                        if (response.body() != null
                                 && response.body().getData() != null) {
 
-                            callback.onSuccess(
-                                    response.body().getData()
-                            );
+                            callback.onSuccess(response.body().getData());
 
                         } else {
 
                             callback.onError(
-                                    "Add failed: HTTP "
-                                            + response.code()
+                                    "Add failed: HTTP " + response.code()
                             );
                         }
                     }
@@ -209,36 +205,36 @@ public class MaintenanceRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: "
-                                        + t.getMessage()
-                        );
+                        callback.onError("Network error: " + t.getMessage());
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // API: UPDATE maintenance
+    // UPDATE maintenance
     // ---------------------------------------------------------
-    public void updateMaintenance(MaintenanceRecord record,
-                                  UpdateMaintenanceCallback callback) {
+    public void updateMaintenance(
+            MaintenanceRecord record,
+            UpdateMaintenanceCallback callback
+    ) {
 
         MaintenanceRequest request = new MaintenanceRequest();
-        request.vehicleId = record.getVehicleId();
+        request.vehicleId = (long) record.getVehicleId();
         request.description = record.getDescription();
         request.date = record.getServiceDate();
-        request.cost = record.getCost();
+        request.cost = 0.0;
         request.alertsEnabled = record.isAlertsEnabled();
 
         apiService.updateMaintenance(record.getId(), request)
                 .enqueue(new Callback<ApiResponse<MaintenanceRecord>>() {
 
                     @Override
-                    public void onResponse(Call<ApiResponse<MaintenanceRecord>> call,
-                                           Response<ApiResponse<MaintenanceRecord>> response) {
+                    public void onResponse(
+                            Call<ApiResponse<MaintenanceRecord>> call,
+                            Response<ApiResponse<MaintenanceRecord>> response
+                    ) {
 
-                        if (response.isSuccessful()
-                                && response.body() != null
+                        if (response.body() != null
                                 && response.body().getData() != null) {
 
                             callback.onSuccess(response.body().getData());
@@ -249,18 +245,22 @@ public class MaintenanceRepository {
                     }
 
                     @Override
-                    public void onFailure(Call<ApiResponse<MaintenanceRecord>> call,
-                                          Throwable t) {
-
+                    public void onFailure(
+                            Call<ApiResponse<MaintenanceRecord>> call,
+                            Throwable t
+                    ) {
                         callback.onError("Network error: " + t.getMessage());
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // API: DELETE maintenance
+    // DELETE maintenance
     // ---------------------------------------------------------
-    public void deleteMaintenance(long id, DeleteMaintenanceCallback callback) {
+    public void deleteMaintenance(
+            long id,
+            DeleteMaintenanceCallback callback
+    ) {
 
         apiService.deleteMaintenance(id)
                 .enqueue(new Callback<Void>() {
@@ -283,10 +283,10 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // LOCAL (TEMP - keep for now)
+    // LOCAL (TEMP ONLY)
     // ---------------------------------------------------------
-    public List<MaintenanceRecord> getMaintenanceForVehicleLocal(int vehicleId) {
-        return db.maintenanceDao().getMaintenanceForVehicle(vehicleId);
+    public MaintenanceRecord getMaintenanceByIdLocal(int id) {
+        return db.maintenanceDao().getMaintenanceById(id);
     }
 
     public void deleteMaintenanceLocal(MaintenanceRecord record) {
@@ -294,7 +294,7 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // VALIDATION (kept simple for now)
+    // VALIDATION
     // ---------------------------------------------------------
     private String validateRecord(MaintenanceRecord record) {
 

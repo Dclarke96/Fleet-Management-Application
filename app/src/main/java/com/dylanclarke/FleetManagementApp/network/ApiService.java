@@ -29,10 +29,10 @@ public interface ApiService {
     Call<Void> deleteVehicle(@Path("id") Long id);
 
     @GET("/api/maintenance")
-    Call<ApiResponse<List<MaintenanceRecord>>> getMaintenance();
+    Call<ApiResponse<PageResponse<MaintenanceRecord>>> getMaintenance();
 
     @GET("/api/maintenance/vehicle/{vehicleId}")
-    Call<ApiResponse<List<MaintenanceRecord>>> getMaintenanceForVehicle(@Path("vehicleId") long vehicleId);
+    Call<ApiResponse<PageResponse<MaintenanceRecord>>> getMaintenanceForVehicle(@Path("vehicleId") long vehicleId);
 
     @GET("/api/maintenance/{id}")
     Call<ApiResponse<MaintenanceRecord>> getMaintenanceById(
