@@ -137,29 +137,50 @@ public class VehicleDetailActivity extends AppCompatActivity {
         });
 
         btnShare.setOnClickListener(v -> {
+
             if (vehicleId == -1L) {
                 Toast.makeText(this, "Save vehicle first", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Vehicle vehicle = vehicleRepo.getVehicleById((int) vehicleId);
-            if (vehicle == null) return;
+            vehicleRepo.getVehicleById(vehicleId, new VehicleRepository.SingleVehicleCallback() {
 
-            String vehicleInfo =
-                    "Vehicle Info:\n" +
-                            "Name: " + vehicle.getTitle() + "\n" +
-                            "Make: " + vehicle.getMake() + "\n" +
-                            "Model: " + vehicle.getModel() + "\n" +
-                            "Year: " + vehicle.getYear() + "\n" +
-                            "Location: " + vehicle.getLocation() + "\n" +
-                            "Start Date: " + vehicle.getStartDate() + "\n" +
-                            "End Date: " + vehicle.getEndDate();
+                @Override
+                public void onSuccess(Vehicle vehicle) {
 
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Vehicle Information");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, vehicleInfo);
-            startActivity(Intent.createChooser(shareIntent, "Share vehicle via"));
+                    runOnUiThread(() -> {
+
+                        String vehicleInfo =
+                                "Vehicle Info:\n" +
+                                        "Name: " + vehicle.getTitle() + "\n" +
+                                        "Make: " + vehicle.getMake() + "\n" +
+                                        "Model: " + vehicle.getModel() + "\n" +
+                                        "Year: " + vehicle.getYear() + "\n" +
+                                        "Location: " + vehicle.getLocation() + "\n" +
+                                        "Start Date: " + vehicle.getStartDate() + "\n" +
+                                        "End Date: " + vehicle.getEndDate();
+
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.setType("text/plain");
+                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Vehicle Information");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, vehicleInfo);
+
+                        startActivity(Intent.createChooser(shareIntent, "Share vehicle via"));
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+
+                    runOnUiThread(() ->
+                            Toast.makeText(
+                                    VehicleDetailActivity.this,
+                                    error,
+                                    Toast.LENGTH_LONG
+                            ).show()
+                    );
+                }
+            });
         });
     }
 

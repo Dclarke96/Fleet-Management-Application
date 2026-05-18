@@ -6,16 +6,12 @@ import android.view.View;
 import android.widget.*;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.dylanclarke.FleetManagementApp.R;
-import com.dylanclarke.FleetManagementApp.data.AppDatabase;
 import com.dylanclarke.FleetManagementApp.data.MaintenanceRecord;
 import com.dylanclarke.FleetManagementApp.data.MaintenanceRepository;
 
 import java.util.List;
-
-// DESIGN FOR SCALABILITY:
-// Feature-specific activity keeps UI modular,
-// allowing independent expansion of application features.
 
 public class MaintenanceListActivity extends AppCompatActivity {
 
@@ -24,10 +20,12 @@ public class MaintenanceListActivity extends AppCompatActivity {
     private LinearLayout maintenanceContainer;
     private Button btnAddMaintenance, btnBack;
 
+    private boolean isLoading = false;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maintenance_list); // Ensure this XML exists
+        setContentView(R.layout.activity_maintenance_list);
 
         maintenanceContainer = findViewById(R.id.maintenanceContainer);
         btnAddMaintenance = findViewById(R.id.btnAddMaintenance);
@@ -37,9 +35,6 @@ public class MaintenanceListActivity extends AppCompatActivity {
 
         if (getIntent().hasExtra("vehicleId")) {
             vehicleId = getIntent().getLongExtra("vehicleId", -1L);
-            if (vehicleId != -1) {
-                loadMaintenanceRecords();
-            }
         }
 
         btnAddMaintenance.setOnClickListener(v -> {
@@ -54,10 +49,16 @@ public class MaintenanceListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadMaintenanceRecords();
+
+        if (vehicleId != -1L) {
+            loadMaintenanceRecords();
+        }
     }
 
     private void loadMaintenanceRecords() {
+
+        if (isLoading) return;
+        isLoading = true;
 
         maintenanceContainer.removeAllViews();
 
@@ -69,6 +70,8 @@ public class MaintenanceListActivity extends AppCompatActivity {
                     public void onSuccess(List<MaintenanceRecord> records) {
 
                         runOnUiThread(() -> {
+
+                            maintenanceContainer.removeAllViews();
 
                             for (MaintenanceRecord record : records) {
 
@@ -118,7 +121,7 @@ public class MaintenanceListActivity extends AppCompatActivity {
                                                                 Toast.LENGTH_SHORT
                                                         ).show();
 
-                                                        loadMaintenanceRecords(); // refresh list
+                                                        loadMaintenanceRecords();
                                                     });
                                                 }
 
@@ -139,19 +142,23 @@ public class MaintenanceListActivity extends AppCompatActivity {
 
                                 maintenanceContainer.addView(item);
                             }
+
+                            isLoading = false;
                         });
                     }
 
                     @Override
                     public void onError(String error) {
 
-                        runOnUiThread(() ->
-                                Toast.makeText(
-                                        MaintenanceListActivity.this,
-                                        error,
-                                        Toast.LENGTH_LONG
-                                ).show()
-                        );
+                        runOnUiThread(() -> {
+                            isLoading = false;
+
+                            Toast.makeText(
+                                    MaintenanceListActivity.this,
+                                    error,
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        });
                     }
                 }
         );
