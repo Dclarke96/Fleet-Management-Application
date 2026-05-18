@@ -56,7 +56,7 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         }
 
         if (getIntent().hasExtra("maintenanceId")) {
-            maintenanceId = getIntent().getIntExtra("maintenanceId", -1);
+            maintenanceId = (int) getIntent().getLongExtra("maintenanceId", -1L);
             loadMaintenance();
         }
 

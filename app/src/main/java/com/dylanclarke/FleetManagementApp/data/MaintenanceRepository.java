@@ -35,93 +35,6 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // GET maintenance for vehicle (API - PAGED)
-    // ---------------------------------------------------------
-    public void getMaintenanceForVehicle(
-            long vehicleId,
-            MaintenanceCallback callback
-    ) {
-
-        apiService.getMaintenanceForVehicle(vehicleId)
-                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
-
-                    @Override
-                    public void onResponse(
-                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
-                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
-                    ) {
-
-                        if (response.body() != null
-                                && response.body().getData() != null
-                                && response.body().getData().content != null) {
-
-                            callback.onSuccess(
-                                    response.body()
-                                            .getData()
-                                            .content
-                            );
-
-                        } else {
-
-                            callback.onError(
-                                    "Failed to load maintenance (HTTP "
-                                            + response.code() + ")"
-                            );
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(
-                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
-                            Throwable t
-                    ) {
-
-                        callback.onError("Network error: " + t.getMessage());
-                    }
-                });
-    }
-
-    // ---------------------------------------------------------
-    // GET ALL maintenance (API - PAGED SAFE CONVERSION)
-    // ---------------------------------------------------------
-    public void getAllMaintenance(MaintenanceCallback callback) {
-
-        apiService.getMaintenance()
-                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
-
-                    @Override
-                    public void onResponse(
-                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
-                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
-                    ) {
-
-                        if (response.body() != null
-                                && response.body().getData() != null
-                                && response.body().getData().content != null) {
-
-                            callback.onSuccess(
-                                    response.body()
-                                            .getData()
-                                            .content
-                            );
-
-                        } else {
-                            callback.onError("Failed to load maintenance");
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(
-                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
-                            Throwable t
-                    ) {
-
-                        callback.onError("Network error: " + t.getMessage());
-                    }
-                });
-    }
-
-    // ---------------------------------------------------------
     // GET BY ID
     // ---------------------------------------------------------
     public void getMaintenanceById(
@@ -159,7 +72,86 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // ADD maintenance
+    // GET maintenance for vehicle
+    // ---------------------------------------------------------
+    public void getMaintenanceForVehicle(
+            long vehicleId,
+            MaintenanceCallback callback
+    ) {
+
+        apiService.getMaintenanceForVehicle(vehicleId)
+                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
+                    ) {
+
+                        if (response.body() != null
+                                && response.body().getData() != null
+                                && response.body().getData().content != null) {
+
+                            callback.onSuccess(response.body().getData().content);
+
+                        } else {
+                            callback.onError("Failed to load maintenance (HTTP " + response.code() + ")");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Throwable t
+                    ) {
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
+    // GET ALL maintenance
+    // ---------------------------------------------------------
+    public void getAllMaintenance(
+            MaintenanceCallback callback
+    ) {
+
+        apiService.getMaintenance()
+                .enqueue(new Callback<ApiResponse<PageResponse<MaintenanceRecord>>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
+                    ) {
+
+                        if (response.body() != null
+                                && response.body().getData() != null
+                                && response.body().getData().content != null) {
+
+                            callback.onSuccess(
+                                    response.body()
+                                            .getData()
+                                            .content
+                            );
+
+                        } else {
+                            callback.onError("Failed to load maintenance");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
+                            Throwable t
+                    ) {
+                        callback.onError("Network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    // ---------------------------------------------------------
+    // ADD
     // ---------------------------------------------------------
     public void addMaintenance(
             MaintenanceRecord record,
@@ -172,8 +164,8 @@ public class MaintenanceRepository {
         request.description = record.getDescription();
         request.date = record.getServiceDate();
 
-        // backend requires cost (temporary default)
-        request.cost = 0.0;
+        // ✅ FIX: use real value instead of forcing 0
+        request.cost = record.getCost();
 
         request.alertsEnabled = record.isAlertsEnabled();
 
@@ -192,10 +184,7 @@ public class MaintenanceRepository {
                             callback.onSuccess(response.body().getData());
 
                         } else {
-
-                            callback.onError(
-                                    "Add failed: HTTP " + response.code()
-                            );
+                            callback.onError("Add failed: HTTP " + response.code());
                         }
                     }
 
@@ -204,14 +193,13 @@ public class MaintenanceRepository {
                             Call<ApiResponse<MaintenanceRecord>> call,
                             Throwable t
                     ) {
-
                         callback.onError("Network error: " + t.getMessage());
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // UPDATE maintenance
+    // UPDATE
     // ---------------------------------------------------------
     public void updateMaintenance(
             MaintenanceRecord record,
@@ -219,10 +207,14 @@ public class MaintenanceRepository {
     ) {
 
         MaintenanceRequest request = new MaintenanceRequest();
+
         request.vehicleId = (long) record.getVehicleId();
         request.description = record.getDescription();
         request.date = record.getServiceDate();
-        request.cost = 0.0;
+
+        // ✅ FIX: stop overwriting with 0
+        request.cost = record.getCost();
+
         request.alertsEnabled = record.isAlertsEnabled();
 
         apiService.updateMaintenance(record.getId(), request)
@@ -255,7 +247,7 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // DELETE maintenance
+    // DELETE (unchanged)
     // ---------------------------------------------------------
     public void deleteMaintenance(
             long id,
@@ -283,39 +275,9 @@ public class MaintenanceRepository {
     }
 
     // ---------------------------------------------------------
-    // LOCAL (TEMP ONLY)
+    // CALLBACKS (unchanged)
     // ---------------------------------------------------------
-    public MaintenanceRecord getMaintenanceByIdLocal(int id) {
-        return db.maintenanceDao().getMaintenanceById(id);
-    }
 
-    public void deleteMaintenanceLocal(MaintenanceRecord record) {
-        db.maintenanceDao().deleteMaintenance(record);
-    }
-
-    // ---------------------------------------------------------
-    // VALIDATION
-    // ---------------------------------------------------------
-    private String validateRecord(MaintenanceRecord record) {
-
-        if (record.getDescription() == null || record.getDescription().trim().isEmpty()
-                || record.getServiceDate() == null || record.getServiceDate().trim().isEmpty()) {
-            return "Description and service date are required";
-        }
-
-        try {
-            sdf.setLenient(false);
-            sdf.parse(record.getServiceDate());
-        } catch (ParseException e) {
-            return "Invalid date format (yyyy-MM-dd)";
-        }
-
-        return null;
-    }
-
-    // ---------------------------------------------------------
-    // CALLBACKS
-    // ---------------------------------------------------------
     public interface MaintenanceCallback {
         void onSuccess(List<MaintenanceRecord> records);
         void onError(String error);
