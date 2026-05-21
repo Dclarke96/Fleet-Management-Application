@@ -19,15 +19,12 @@ import retrofit2.Response;
 
 public class MaintenanceRepository {
 
-    private final AppDatabase db;
     private final ApiService apiService;
 
     private final SimpleDateFormat sdf =
             new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     public MaintenanceRepository(Context context) {
-
-        db = AppDatabase.getInstance(context);
 
         apiService = ApiClient
                 .getClient(context)

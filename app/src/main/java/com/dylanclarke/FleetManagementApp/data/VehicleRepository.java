@@ -20,7 +20,6 @@ import retrofit2.Response;
 
 public class VehicleRepository {
 
-    private final AppDatabase db;
     private final ApiService apiService;
 
     private final SimpleDateFormat sdf =
@@ -28,7 +27,6 @@ public class VehicleRepository {
 
     public VehicleRepository(Context context) {
 
-        db = AppDatabase.getInstance(context);
 
         apiService = ApiClient
                 .getClient(context)
@@ -82,12 +80,6 @@ public class VehicleRepository {
         );
     }
 
-    // ---------------------------------------------------------
-    // LOCAL FALLBACK (TEMP - still used in tests)
-    // ---------------------------------------------------------
-    public List<Vehicle> getAllVehiclesLocal() {
-        return db.vehicleDao().getAllVehicles();
-    }
 
     // ---------------------------------------------------------
     // API GET VEHICLE BY ID
@@ -132,19 +124,6 @@ public class VehicleRepository {
                 });
     }
 
-    // ---------------------------------------------------------
-    // Get vehicle by ID (Room)
-    // ---------------------------------------------------------
-    public Vehicle getVehicleById(int id) {
-        return db.vehicleDao().getVehicleById(id);
-    }
-
-    // ---------------------------------------------------------
-    // Search vehicles (Room)
-    // ---------------------------------------------------------
-    public List<Vehicle> searchVehicles(String query) {
-        return db.vehicleDao().searchVehicles(query);
-    }
 
     // ---------------------------------------------------------
     // API ADD VEHICLE (ASYNC)
@@ -228,20 +207,6 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
-    // LOCAL VERSION (used for tests)
-    // ---------------------------------------------------------
-    public int addVehicle(Vehicle vehicle) {
-
-        String validationError = validateVehicle(vehicle);
-
-        if (validationError != null) return -1;
-
-        long id = db.vehicleDao().insertVehicle(vehicle);
-
-        return (int) id;
-    }
-
-    // ---------------------------------------------------------
     // API UPDATE VEHICLE
     // ---------------------------------------------------------
     public void updateVehicle(
@@ -316,20 +281,6 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
-    // Update (Room for now)
-    // ---------------------------------------------------------
-    public boolean updateVehicle(Vehicle vehicle) {
-
-        String validationError = validateVehicle(vehicle);
-
-        if (validationError != null) return false;
-
-        db.vehicleDao().updateVehicle(vehicle);
-
-        return true;
-    }
-
-    // ---------------------------------------------------------
     // API DELETE VEHICLE BY ID
     // ---------------------------------------------------------
     public void deleteVehicle(long vehicleId, DeleteVehicleCallback callback) {
@@ -368,16 +319,6 @@ public class VehicleRepository {
                         );
                     }
                 });
-    }
-
-    // ---------------------------------------------------------
-    // LOCAL DELETE (used for tests)
-    // ---------------------------------------------------------
-    public boolean deleteVehicle(Vehicle vehicle) {
-
-        db.vehicleDao().deleteVehicle(vehicle);
-
-        return true;
     }
 
     // ---------------------------------------------------------
