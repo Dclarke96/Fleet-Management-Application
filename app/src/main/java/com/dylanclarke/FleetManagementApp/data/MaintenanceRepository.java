@@ -90,10 +90,10 @@ public class MaintenanceRepository {
                         if (response.isSuccessful()
                                 && response.body() != null
                                 && response.body().getData() != null
-                                && response.body().getData().content != null) {
+                                && response.body().getData().getContent() != null) {
 
                             callback.onSuccess(
-                                    response.body().getData().content
+                                    response.body().getData().getContent()
                             );
 
                         } else {
@@ -134,10 +134,10 @@ public class MaintenanceRepository {
                         if (response.isSuccessful()
                                 && response.body() != null
                                 && response.body().getData() != null
-                                && response.body().getData().content != null) {
+                                && response.body().getData().getContent() != null) {
 
                             callback.onSuccess(
-                                    response.body().getData().content
+                                    response.body().getData().getContent()
                             );
 
                         } else {
@@ -289,21 +289,19 @@ public class MaintenanceRepository {
     // ---------------------------------------------------------
 
     /**
-     * Maps a MaintenanceRecord into an API request object.
+     * Maps a MaintenanceRecord into an API request payload.
      */
     private MaintenanceRequest buildRequest(
             MaintenanceRecord record
     ) {
 
-        MaintenanceRequest request = new MaintenanceRequest();
-
-        request.vehicleId = (long) record.getVehicleId();
-        request.description = record.getDescription();
-        request.date = record.getServiceDate();
-        request.cost = record.getCost();
-        request.alertsEnabled = record.isAlertsEnabled();
-
-        return request;
+        return new MaintenanceRequest(
+                (long) record.getVehicleId(),
+                record.getDescription(),
+                record.getServiceDate(),
+                record.getCost(),
+                record.isAlertsEnabled()
+        );
     }
 
     /**

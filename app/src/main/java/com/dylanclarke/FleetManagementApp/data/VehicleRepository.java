@@ -54,10 +54,10 @@ public class VehicleRepository {
                         if (response.isSuccessful()
                                 && response.body() != null
                                 && response.body().getData() != null
-                                && response.body().getData().content != null) {
+                                && response.body().getData().getContent() != null) {
 
                             callback.onSuccess(
-                                    response.body().getData().content
+                                    response.body().getData().getContent()
                             );
 
                         } else {
@@ -287,25 +287,22 @@ public class VehicleRepository {
     // ---------------------------------------------------------
 
     /**
-     * Maps a Vehicle model into an API request object.
+     * Maps a Vehicle model into an API request payload.
      */
     private VehicleRequest buildVehicleRequest(
             Vehicle vehicle
     ) {
 
-        VehicleRequest request = new VehicleRequest();
-
-        request.title = vehicle.getTitle();
-        request.make = vehicle.getMake();
-        request.model = vehicle.getModel();
-        request.vehicleYear = vehicle.getYear();
-        request.location = vehicle.getLocation();
-        request.maintenanceAlertsEnabled =
-                vehicle.isMaintenanceAlertsEnabled();
-        request.startDate = vehicle.getStartDate();
-        request.endDate = vehicle.getEndDate();
-
-        return request;
+        return new VehicleRequest(
+                vehicle.getTitle(),
+                vehicle.getMake(),
+                vehicle.getModel(),
+                vehicle.getYear(),
+                vehicle.getLocation(),
+                vehicle.isMaintenanceAlertsEnabled(),
+                vehicle.getStartDate(),
+                vehicle.getEndDate()
+        );
     }
 
     /**
