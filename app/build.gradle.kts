@@ -1,8 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt") // For Room
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // REQUIRED for Kotlin 2.0+
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
 android {
@@ -21,7 +20,6 @@ android {
 
     signingConfigs {
         create("release") {
-            // ⚠️ Update these values to match your keystore
             storeFile = file("../keystore/fleet_management_keystore.jks")
             storePassword = "your_store_password"
             keyAlias = "fleet_key_alias"
@@ -31,12 +29,12 @@ android {
 
     buildTypes {
         debug {
-            // Default debug build
             isMinifyEnabled = false
         }
+
         release {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false // You can enable R8/proguard later
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -58,17 +56,18 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "2.0.0" // Match plugin version
+        kotlinCompilerExtensionVersion = "2.0.0"
     }
 }
 
 // ----------------------------
 // Dependencies
 // ----------------------------
-val roomVersion = "2.5.2"
+
 val composeBomVersion = "2025.12.00"
 
 dependencies {
+
     // AndroidX Core & Lifecycle
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
@@ -86,23 +85,21 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // Room (Database)
-    implementation("androidx.room:room-runtime:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
+    // Network (Retrofit)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Logging
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5") // ✅ fixed version
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
-    // Network
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-
     // Debug tools
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }

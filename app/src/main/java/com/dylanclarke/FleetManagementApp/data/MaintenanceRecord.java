@@ -1,55 +1,47 @@
 package com.dylanclarke.FleetManagementApp.data;
 
 import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
 
 import com.google.gson.annotations.SerializedName;
 
-@Entity(
-        tableName = "maintenance_records",
-        foreignKeys = @ForeignKey(
-                entity = Vehicle.class,
-                parentColumns = "id",
-                childColumns = "vehicle_id",
-                onDelete = ForeignKey.CASCADE
-        ),
-        indices = {@Index("vehicle_id")}
-)
+/**
+ * Represents a maintenance/service record associated with a vehicle.
+ */
 public class MaintenanceRecord extends BaseEntity {
 
     @NonNull
-    @ColumnInfo(name = "description")
     @SerializedName("description")
     private String description = "";
 
+    // Service date returned from API (currently stored as String)
     @NonNull
-    @ColumnInfo(name = "service_date")
-    @SerializedName("date") // 🔥 FIX: backend sends "date"
+    @SerializedName("date")
     private String serviceDate = "";
 
-    @ColumnInfo(name = "alerts_enabled")
     @SerializedName("alertsEnabled")
     private boolean alertsEnabled;
 
-    @ColumnInfo(name = "vehicle_id")
+    // Parent vehicle ID associated with this maintenance record
     @SerializedName("vehicleId")
     private int vehicleId;
 
-    @ColumnInfo(name = "cost")
+    // Optional service cost
     @SerializedName("cost")
-    private Double cost; // 🔥 FIX: allow null safely
+    private Double cost;
 
-    public MaintenanceRecord() {}
+    /**
+     * Required empty constructor for Gson deserialization.
+     */
+    public MaintenanceRecord() {
+    }
 
-    public MaintenanceRecord(@NonNull String description,
-                             @NonNull String serviceDate,
-                             Double cost,
-                             boolean alertsEnabled,
-                             int vehicleId) {
-
+    public MaintenanceRecord(
+            @NonNull String description,
+            @NonNull String serviceDate,
+            Double cost,
+            boolean alertsEnabled,
+            int vehicleId
+    ) {
         this.description = description;
         this.serviceDate = serviceDate;
         this.cost = cost;
@@ -57,19 +49,21 @@ public class MaintenanceRecord extends BaseEntity {
         this.vehicleId = vehicleId;
     }
 
+    @NonNull
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(@NonNull String description) {
         this.description = description;
     }
 
+    @NonNull
     public String getServiceDate() {
         return serviceDate;
     }
 
-    public void setServiceDate(String serviceDate) {
+    public void setServiceDate(@NonNull String serviceDate) {
         this.serviceDate = serviceDate;
     }
 
@@ -97,15 +91,22 @@ public class MaintenanceRecord extends BaseEntity {
         this.cost = cost;
     }
 
+    /**
+     * Returns the primary UI display value for this record.
+     */
     @NonNull
     @Override
     public String displayName() {
         return description;
     }
 
+    /**
+     * Returns a readable summary for logging and list displays.
+     */
     @NonNull
     @Override
     public String toString() {
-        return serviceDate + ": " + description + (alertsEnabled ? " [Alert]" : "");
+        return serviceDate + ": " + description +
+                (alertsEnabled ? " [Alert]" : "");
     }
 }

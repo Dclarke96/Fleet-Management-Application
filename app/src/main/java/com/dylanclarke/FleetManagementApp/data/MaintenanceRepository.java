@@ -8,32 +8,29 @@ import com.dylanclarke.FleetManagementApp.network.ApiService;
 import com.dylanclarke.FleetManagementApp.network.MaintenanceRequest;
 import com.dylanclarke.FleetManagementApp.network.PageResponse;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Repository responsible for maintenance-related API operations.
+ */
 public class MaintenanceRepository {
 
     private final ApiService apiService;
 
-    private final SimpleDateFormat sdf =
-            new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-
     public MaintenanceRepository(Context context) {
-
         apiService = ApiClient
                 .getClient(context)
                 .create(ApiService.class);
     }
 
     // ---------------------------------------------------------
-    // GET BY ID
+    // GET SINGLE RECORD
     // ---------------------------------------------------------
+
     public void getMaintenanceById(
             long maintenanceId,
             SingleMaintenanceCallback callback
@@ -48,13 +45,17 @@ public class MaintenanceRepository {
                             Response<ApiResponse<MaintenanceRecord>> response
                     ) {
 
-                        if (response.body() != null
+                        if (response.isSuccessful()
+                                && response.body() != null
                                 && response.body().getData() != null) {
 
                             callback.onSuccess(response.body().getData());
 
                         } else {
-                            callback.onError("Failed to load maintenance");
+                            callback.onError(
+                                    "Failed to load maintenance (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -63,14 +64,15 @@ public class MaintenanceRepository {
                             Call<ApiResponse<MaintenanceRecord>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // GET maintenance for vehicle
+    // GET VEHICLE MAINTENANCE
     // ---------------------------------------------------------
+
     public void getMaintenanceForVehicle(
             long vehicleId,
             MaintenanceCallback callback
@@ -85,14 +87,20 @@ public class MaintenanceRepository {
                             Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
                     ) {
 
-                        if (response.body() != null
+                        if (response.isSuccessful()
+                                && response.body() != null
                                 && response.body().getData() != null
                                 && response.body().getData().content != null) {
 
-                            callback.onSuccess(response.body().getData().content);
+                            callback.onSuccess(
+                                    response.body().getData().content
+                            );
 
                         } else {
-                            callback.onError("Failed to load maintenance (HTTP " + response.code() + ")");
+                            callback.onError(
+                                    "Failed to load maintenance (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -101,14 +109,15 @@ public class MaintenanceRepository {
                             Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // GET ALL maintenance
+    // GET ALL MAINTENANCE
     // ---------------------------------------------------------
+
     public void getAllMaintenance(
             MaintenanceCallback callback
     ) {
@@ -122,18 +131,20 @@ public class MaintenanceRepository {
                             Response<ApiResponse<PageResponse<MaintenanceRecord>>> response
                     ) {
 
-                        if (response.body() != null
+                        if (response.isSuccessful()
+                                && response.body() != null
                                 && response.body().getData() != null
                                 && response.body().getData().content != null) {
 
                             callback.onSuccess(
-                                    response.body()
-                                            .getData()
-                                            .content
+                                    response.body().getData().content
                             );
 
                         } else {
-                            callback.onError("Failed to load maintenance");
+                            callback.onError(
+                                    "Failed to load maintenance (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -142,7 +153,7 @@ public class MaintenanceRepository {
                             Call<ApiResponse<PageResponse<MaintenanceRecord>>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
@@ -150,21 +161,13 @@ public class MaintenanceRepository {
     // ---------------------------------------------------------
     // ADD
     // ---------------------------------------------------------
+
     public void addMaintenance(
             MaintenanceRecord record,
             AddMaintenanceCallback callback
     ) {
 
-        MaintenanceRequest request = new MaintenanceRequest();
-
-        request.vehicleId = (long) record.getVehicleId();
-        request.description = record.getDescription();
-        request.date = record.getServiceDate();
-
-        // ✅ FIX: use real value instead of forcing 0
-        request.cost = record.getCost();
-
-        request.alertsEnabled = record.isAlertsEnabled();
+        MaintenanceRequest request = buildRequest(record);
 
         apiService.addMaintenance(request)
                 .enqueue(new Callback<ApiResponse<MaintenanceRecord>>() {
@@ -175,13 +178,17 @@ public class MaintenanceRepository {
                             Response<ApiResponse<MaintenanceRecord>> response
                     ) {
 
-                        if (response.body() != null
+                        if (response.isSuccessful()
+                                && response.body() != null
                                 && response.body().getData() != null) {
 
                             callback.onSuccess(response.body().getData());
 
                         } else {
-                            callback.onError("Add failed: HTTP " + response.code());
+                            callback.onError(
+                                    "Add failed (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -190,7 +197,7 @@ public class MaintenanceRepository {
                             Call<ApiResponse<MaintenanceRecord>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
@@ -198,21 +205,13 @@ public class MaintenanceRepository {
     // ---------------------------------------------------------
     // UPDATE
     // ---------------------------------------------------------
+
     public void updateMaintenance(
             MaintenanceRecord record,
             UpdateMaintenanceCallback callback
     ) {
 
-        MaintenanceRequest request = new MaintenanceRequest();
-
-        request.vehicleId = (long) record.getVehicleId();
-        request.description = record.getDescription();
-        request.date = record.getServiceDate();
-
-        // ✅ FIX: stop overwriting with 0
-        request.cost = record.getCost();
-
-        request.alertsEnabled = record.isAlertsEnabled();
+        MaintenanceRequest request = buildRequest(record);
 
         apiService.updateMaintenance(record.getId(), request)
                 .enqueue(new Callback<ApiResponse<MaintenanceRecord>>() {
@@ -223,13 +222,17 @@ public class MaintenanceRepository {
                             Response<ApiResponse<MaintenanceRecord>> response
                     ) {
 
-                        if (response.body() != null
+                        if (response.isSuccessful()
+                                && response.body() != null
                                 && response.body().getData() != null) {
 
                             callback.onSuccess(response.body().getData());
 
                         } else {
-                            callback.onError("Update failed: HTTP " + response.code());
+                            callback.onError(
+                                    "Update failed (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
@@ -238,14 +241,15 @@ public class MaintenanceRepository {
                             Call<ApiResponse<MaintenanceRecord>> call,
                             Throwable t
                     ) {
-                        callback.onError("Network error: " + t.getMessage());
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // DELETE (unchanged)
+    // DELETE
     // ---------------------------------------------------------
+
     public void deleteMaintenance(
             long id,
             DeleteMaintenanceCallback callback
@@ -255,24 +259,62 @@ public class MaintenanceRepository {
                 .enqueue(new Callback<Void>() {
 
                     @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
+                    public void onResponse(
+                            Call<Void> call,
+                            Response<Void> response
+                    ) {
 
                         if (response.isSuccessful()) {
                             callback.onSuccess();
                         } else {
-                            callback.onError("Delete failed: HTTP " + response.code());
+                            callback.onError(
+                                    "Delete failed (HTTP "
+                                            + response.code() + ")"
+                            );
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        callback.onError("Network error: " + t.getMessage());
+                    public void onFailure(
+                            Call<Void> call,
+                            Throwable t
+                    ) {
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // CALLBACKS (unchanged)
+    // HELPERS
+    // ---------------------------------------------------------
+
+    /**
+     * Maps a MaintenanceRecord into an API request object.
+     */
+    private MaintenanceRequest buildRequest(
+            MaintenanceRecord record
+    ) {
+
+        MaintenanceRequest request = new MaintenanceRequest();
+
+        request.vehicleId = (long) record.getVehicleId();
+        request.description = record.getDescription();
+        request.date = record.getServiceDate();
+        request.cost = record.getCost();
+        request.alertsEnabled = record.isAlertsEnabled();
+
+        return request;
+    }
+
+    /**
+     * Builds a user-friendly network error message.
+     */
+    private String buildNetworkError(Throwable t) {
+        return "Network error: " + t.getMessage();
+    }
+
+    // ---------------------------------------------------------
+    // CALLBACKS
     // ---------------------------------------------------------
 
     public interface MaintenanceCallback {

@@ -18,15 +18,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Repository responsible for vehicle-related API operations.
+ */
 public class VehicleRepository {
+
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final ApiService apiService;
 
-    private final SimpleDateFormat sdf =
-            new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-
     public VehicleRepository(Context context) {
-
 
         apiService = ApiClient
                 .getClient(context)
@@ -34,12 +35,15 @@ public class VehicleRepository {
     }
 
     // ---------------------------------------------------------
-    // API VERSION - Get all vehicles
+    // GET ALL VEHICLES
     // ---------------------------------------------------------
-    public void getAllVehicles(VehicleCallback callback) {
 
-        apiService.getVehicles().enqueue(
-                new Callback<ApiResponse<PageResponse<Vehicle>>>() {
+    public void getAllVehicles(
+            VehicleCallback callback
+    ) {
+
+        apiService.getVehicles()
+                .enqueue(new Callback<ApiResponse<PageResponse<Vehicle>>>() {
 
                     @Override
                     public void onResponse(
@@ -49,12 +53,11 @@ public class VehicleRepository {
 
                         if (response.isSuccessful()
                                 && response.body() != null
-                                && response.body().getData() != null) {
+                                && response.body().getData() != null
+                                && response.body().getData().content != null) {
 
                             callback.onSuccess(
-                                    response.body()
-                                            .getData()
-                                            .content
+                                    response.body().getData().content
                             );
 
                         } else {
@@ -72,19 +75,19 @@ public class VehicleRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: " + t.getMessage()
-                        );
+                        callback.onError(buildNetworkError(t));
                     }
-                }
-        );
+                });
     }
 
+    // ---------------------------------------------------------
+    // GET VEHICLE BY ID
+    // ---------------------------------------------------------
 
-    // ---------------------------------------------------------
-    // API GET VEHICLE BY ID
-    // ---------------------------------------------------------
-    public void getVehicleById(Long vehicleId, SingleVehicleCallback callback) {
+    public void getVehicleById(
+            Long vehicleId,
+            SingleVehicleCallback callback
+    ) {
 
         apiService.getVehicleById(vehicleId)
                 .enqueue(new Callback<ApiResponse<Vehicle>>() {
@@ -106,7 +109,8 @@ public class VehicleRepository {
                         } else {
 
                             callback.onError(
-                                    "Failed to load vehicle"
+                                    "Failed to load vehicle (HTTP "
+                                            + response.code() + ")"
                             );
                         }
                     }
@@ -117,18 +121,19 @@ public class VehicleRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: " + t.getMessage()
-                        );
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
+    // ---------------------------------------------------------
+    // ADD VEHICLE
+    // ---------------------------------------------------------
 
-    // ---------------------------------------------------------
-    // API ADD VEHICLE (ASYNC)
-    // ---------------------------------------------------------
-    public void addVehicle(Vehicle vehicle, AddVehicleCallback callback) {
+    public void addVehicle(
+            Vehicle vehicle,
+            AddVehicleCallback callback
+    ) {
 
         String validationError = validateVehicle(vehicle);
 
@@ -137,22 +142,7 @@ public class VehicleRepository {
             return;
         }
 
-        VehicleRequest request = new VehicleRequest();
-
-        request.title = vehicle.getTitle();
-        request.make = vehicle.getMake();
-        request.model = vehicle.getModel();
-
-        // IMPORTANT:
-        // Backend expects "vehicleYear"
-        request.vehicleYear = vehicle.getYear();
-
-        request.location = vehicle.getLocation();
-        request.maintenanceAlertsEnabled =
-                vehicle.isMaintenanceAlertsEnabled();
-
-        request.startDate = vehicle.getStartDate();
-        request.endDate = vehicle.getEndDate();
+        VehicleRequest request = buildVehicleRequest(vehicle);
 
         apiService.addVehicle(request)
                 .enqueue(new Callback<ApiResponse<Vehicle>>() {
@@ -173,22 +163,8 @@ public class VehicleRepository {
 
                         } else {
 
-                            String errorBody = "";
-
-                            try {
-
-                                if (response.errorBody() != null) {
-                                    errorBody =
-                                            response.errorBody().string();
-                                }
-
-                            } catch (Exception ignored) {}
-
                             callback.onError(
-                                    "Server error: HTTP "
-                                            + response.code()
-                                            + " "
-                                            + errorBody
+                                    buildServerError(response)
                             );
                         }
                     }
@@ -199,16 +175,15 @@ public class VehicleRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: " + t.getMessage()
-                        );
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // API UPDATE VEHICLE
+    // UPDATE VEHICLE
     // ---------------------------------------------------------
+
     public void updateVehicle(
             Vehicle vehicle,
             UpdateVehicleCallback callback
@@ -217,28 +192,16 @@ public class VehicleRepository {
         String validationError = validateVehicle(vehicle);
 
         if (validationError != null) {
-
             callback.onError(validationError);
             return;
         }
 
         if (vehicle.getId() == null) {
-
             callback.onError("Vehicle ID is null");
             return;
         }
 
-        VehicleRequest request = new VehicleRequest();
-
-        request.title = vehicle.getTitle();
-        request.make = vehicle.getMake();
-        request.model = vehicle.getModel();
-        request.vehicleYear = vehicle.getYear();
-        request.location = vehicle.getLocation();
-        request.maintenanceAlertsEnabled =
-                vehicle.isMaintenanceAlertsEnabled();
-        request.startDate = vehicle.getStartDate();
-        request.endDate = vehicle.getEndDate();
+        VehicleRequest request = buildVehicleRequest(vehicle);
 
         apiService.updateVehicle(vehicle.getId(), request)
                 .enqueue(new Callback<ApiResponse<Vehicle>>() {
@@ -260,8 +223,8 @@ public class VehicleRepository {
                         } else {
 
                             callback.onError(
-                                    "Update failed: HTTP "
-                                            + response.code()
+                                    "Update failed (HTTP "
+                                            + response.code() + ")"
                             );
                         }
                     }
@@ -272,18 +235,19 @@ public class VehicleRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: "
-                                        + t.getMessage()
-                        );
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
-    // API DELETE VEHICLE BY ID
+    // DELETE VEHICLE
     // ---------------------------------------------------------
-    public void deleteVehicle(long vehicleId, DeleteVehicleCallback callback) {
+
+    public void deleteVehicle(
+            long vehicleId,
+            DeleteVehicleCallback callback
+    ) {
 
         apiService.deleteVehicle(vehicleId)
                 .enqueue(new Callback<Void>() {
@@ -301,8 +265,8 @@ public class VehicleRepository {
                         } else {
 
                             callback.onError(
-                                    "Delete failed: HTTP "
-                                            + response.code()
+                                    "Delete failed (HTTP "
+                                            + response.code() + ")"
                             );
                         }
                     }
@@ -313,17 +277,127 @@ public class VehicleRepository {
                             Throwable t
                     ) {
 
-                        callback.onError(
-                                "Network error: "
-                                        + t.getMessage()
-                        );
+                        callback.onError(buildNetworkError(t));
                     }
                 });
     }
 
     // ---------------------------------------------------------
+    // HELPERS
+    // ---------------------------------------------------------
+
+    /**
+     * Maps a Vehicle model into an API request object.
+     */
+    private VehicleRequest buildVehicleRequest(
+            Vehicle vehicle
+    ) {
+
+        VehicleRequest request = new VehicleRequest();
+
+        request.title = vehicle.getTitle();
+        request.make = vehicle.getMake();
+        request.model = vehicle.getModel();
+        request.vehicleYear = vehicle.getYear();
+        request.location = vehicle.getLocation();
+        request.maintenanceAlertsEnabled =
+                vehicle.isMaintenanceAlertsEnabled();
+        request.startDate = vehicle.getStartDate();
+        request.endDate = vehicle.getEndDate();
+
+        return request;
+    }
+
+    /**
+     * Builds a standardized network error message.
+     */
+    private String buildNetworkError(Throwable t) {
+        return "Network error: " + t.getMessage();
+    }
+
+    /**
+     * Extracts server error details from API responses.
+     */
+    private String buildServerError(Response<?> response) {
+
+        String errorBody = "";
+
+        try {
+
+            if (response.errorBody() != null) {
+                errorBody = response.errorBody().string();
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return "Server error: HTTP "
+                + response.code()
+                + " "
+                + errorBody;
+    }
+
+    // ---------------------------------------------------------
+    // VALIDATION
+    // ---------------------------------------------------------
+
+    /**
+     * Validates vehicle data before API submission.
+     */
+    private String validateVehicle(
+            Vehicle vehicle
+    ) {
+
+        if (vehicle.getMake().isEmpty()
+                || vehicle.getModel().isEmpty()
+                || vehicle.getLocation().isEmpty()) {
+
+            return "Make, model, and location are required";
+        }
+
+        int currentYear =
+                Calendar.getInstance().get(Calendar.YEAR);
+
+        if (vehicle.getYear() < 1900
+                || vehicle.getYear() > currentYear) {
+
+            return "Year must be between 1900 and "
+                    + currentYear;
+        }
+
+        SimpleDateFormat sdf =
+                new SimpleDateFormat(DATE_FORMAT, Locale.US);
+
+        sdf.setLenient(false);
+
+        try {
+
+            sdf.parse(vehicle.getStartDate());
+
+            if (vehicle.getEndDate() != null
+                    && !vehicle.getEndDate().isEmpty()) {
+
+                if (sdf.parse(vehicle.getEndDate())
+                        .before(
+                                sdf.parse(vehicle.getStartDate())
+                        )) {
+
+                    return "End date cannot be before start date";
+                }
+            }
+
+        } catch (ParseException e) {
+
+            return "Invalid date format (" + DATE_FORMAT + ")";
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------
     // CALLBACKS
     // ---------------------------------------------------------
+
     public interface VehicleCallback {
         void onSuccess(List<Vehicle> vehicles);
         void onError(String error);
@@ -347,53 +421,5 @@ public class VehicleRepository {
     public interface DeleteVehicleCallback {
         void onSuccess();
         void onError(String error);
-    }
-
-    // ---------------------------------------------------------
-    // VALIDATION
-    // ---------------------------------------------------------
-    private String validateVehicle(Vehicle vehicle) {
-
-        if (vehicle.getMake().isEmpty()
-                || vehicle.getModel().isEmpty()
-                || vehicle.getLocation().isEmpty()) {
-
-            return "Make, model, and location are required";
-        }
-
-        int currentYear =
-                Calendar.getInstance().get(Calendar.YEAR);
-
-        if (vehicle.getYear() < 1900
-                || vehicle.getYear() > currentYear) {
-
-            return "Year must be between 1900 and "
-                    + currentYear;
-        }
-
-        try {
-
-            sdf.setLenient(false);
-
-            sdf.parse(vehicle.getStartDate());
-
-            if (vehicle.getEndDate() != null
-                    && !vehicle.getEndDate().isEmpty()) {
-
-                if (sdf.parse(vehicle.getEndDate())
-                        .before(
-                                sdf.parse(vehicle.getStartDate())
-                        )) {
-
-                    return "End date cannot be before start date";
-                }
-            }
-
-        } catch (ParseException e) {
-
-            return "Invalid date format (yyyy-MM-dd)";
-        }
-
-        return null;
     }
 }
