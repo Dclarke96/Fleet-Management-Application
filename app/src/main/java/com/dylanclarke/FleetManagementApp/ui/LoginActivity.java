@@ -19,63 +19,150 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Handles user authentication and JWT session initialization.
+ */
 public class LoginActivity extends AppCompatActivity {
 
-    EditText etUsername, etPassword;
-    Button btnLogin;
+    private static final String PREF_AUTH = "auth";
+
+    private static final String KEY_JWT = "jwt";
+
+    private EditText etUsername;
+
+    private EditText etPassword;
+
+    private Button btnLogin;
+
+    private ApiService apiService;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_login);
 
-        etUsername = findViewById(R.id.etUsername);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
+        initializeViews();
+
+        apiService = ApiClient
+                .getClient(getApplicationContext())
+                .create(ApiService.class);
 
         btnLogin.setOnClickListener(v -> loginUser());
     }
 
+    /**
+     * Initializes UI view references.
+     */
+    private void initializeViews() {
+
+        etUsername = findViewById(R.id.etUsername);
+
+        etPassword = findViewById(R.id.etPassword);
+
+        btnLogin = findViewById(R.id.btnLogin);
+    }
+
+    /**
+     * Attempts user authentication through the backend API.
+     */
     private void loginUser() {
 
-        String username = etUsername.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String username =
+                etUsername.getText().toString().trim();
 
-        ApiService apiService = ApiClient.getClient(getApplicationContext()).create(ApiService.class);
+        String password =
+                etPassword.getText().toString().trim();
 
-        LoginRequest request = new LoginRequest(username, password);
+        LoginRequest request =
+                new LoginRequest(username, password);
 
-        apiService.login(request).enqueue(new Callback<ApiResponse<String>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
+        apiService.login(request)
+                .enqueue(new Callback<ApiResponse<String>>() {
 
-                if (response.isSuccessful() && response.body() != null) {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<String>> call,
+                            Response<ApiResponse<String>> response
+                    ) {
 
-                    String token = response.body().getData();
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().getData() != null) {
 
-                    SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
-                    prefs.edit().putString("jwt", token).apply();
+                            handleSuccessfulLogin(
+                                    response.body().getData()
+                            );
 
-                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                        } else {
 
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                    finish();
+                            showToast(
+                                    "Login failed (HTTP "
+                                            + response.code()
+                                            + ")"
+                            );
+                        }
+                    }
 
-                } else {
-                    Toast.makeText(LoginActivity.this,
-                            "Login Failed Code: " + response.code(),
-                            Toast.LENGTH_LONG).show();
-                }
-            }
+                    @Override
+                    public void onFailure(
+                            Call<ApiResponse<String>> call,
+                            Throwable t
+                    ) {
 
-            @Override
-            public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
-                Toast.makeText(LoginActivity.this,
-                        "Connection Failed: " + t.getMessage(),
-                        Toast.LENGTH_LONG).show();
+                        showToast(
+                                "Connection failed: "
+                                        + t.getMessage()
+                        );
 
-                t.printStackTrace();
-            }
-        });
+                        t.printStackTrace();
+                    }
+                });
+    }
+
+    /**
+     * Saves JWT token and navigates to the main application screen.
+     */
+    private void handleSuccessfulLogin(
+            String token
+    ) {
+
+        SharedPreferences preferences =
+                getSharedPreferences(
+                        PREF_AUTH,
+                        MODE_PRIVATE
+                );
+
+        preferences.edit()
+                .putString(KEY_JWT, token)
+                .apply();
+
+        showToast("Login successful");
+
+        startActivity(
+                new Intent(
+                        LoginActivity.this,
+                        MainActivity.class
+                )
+        );
+
+        finish();
+    }
+
+    /**
+     * Displays a short user message.
+     */
+    private void showToast(
+            String message
+    ) {
+
+        Toast.makeText(
+                this,
+                message,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

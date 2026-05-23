@@ -6,7 +6,11 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Switch;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dylanclarke.FleetManagementApp.R;
@@ -19,260 +23,457 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-// DESIGN FOR SCALABILITY:
-// Feature-specific activity keeps UI modular,
-// allowing independent expansion of application features.
-
+/**
+ * Handles creation and editing of maintenance records.
+ */
 public class MaintenanceDetailActivity extends AppCompatActivity {
 
-    private EditText editDescription, editDate, editCost;
-    private Switch switchAlert;
-    private Button btnSave, btnBack;
-    private MaintenanceRepository maintenanceRepo;
-    private long vehicleId;
-    private int maintenanceId = -1;
+    private static final String EXTRA_VEHICLE_ID =
+            "vehicleId";
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    private static final String EXTRA_MAINTENANCE_ID =
+            "maintenanceId";
+
+    private static final String ALERT_ENTITY_TYPE =
+            "Maintenance";
+
+    private static final String ALERT_EVENT_TYPE =
+            "service";
+
+    private EditText editDescription;
+
+    private EditText editDate;
+
+    private EditText editCost;
+
+    private Switch switchAlert;
+
+    private Button btnSave;
+
+    private Button btnBack;
+
+    private MaintenanceRepository maintenanceRepository;
+
+    private long vehicleId = -1L;
+
+    private long maintenanceId = -1L;
+
+    private final SimpleDateFormat sdf =
+            new SimpleDateFormat(
+                    "yyyy-MM-dd",
+                    Locale.US
+            );
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maintenance_detail);
 
-        editDescription = findViewById(R.id.editMaintenanceTitle);
-        editDate = findViewById(R.id.editMaintenanceDate);
+        initializeViews();
 
-        // NEW
-        editCost = findViewById(R.id.editMaintenanceCost);
+        initializeRepository();
 
-        switchAlert = findViewById(R.id.switchAlert);
-        btnSave = findViewById(R.id.btnSaveMaintenance);
-        btnBack = findViewById(R.id.backButton);
+        loadIntentData();
 
-        maintenanceRepo = new MaintenanceRepository(getApplicationContext());
+        setupListeners();
 
-        if (getIntent().hasExtra("vehicleId")) {
-            vehicleId = getIntent().getLongExtra("vehicleId", -1L);
-        }
-
-        if (getIntent().hasExtra("maintenanceId")) {
-            maintenanceId = (int) getIntent().getLongExtra("maintenanceId", -1L);
+        if (maintenanceId != -1L) {
             loadMaintenance();
         }
-
-        btnSave.setOnClickListener(v -> saveMaintenance());
-        btnBack.setOnClickListener(v -> finish());
-
-        Calendar calendar = Calendar.getInstance();
-        editDate.setOnClickListener(v -> showDatePicker(calendar));
     }
 
-    private void showDatePicker(Calendar calendar) {
+    /**
+     * Initializes UI view references.
+     */
+    private void initializeViews() {
+
+        editDescription =
+                findViewById(R.id.editMaintenanceTitle);
+
+        editDate =
+                findViewById(R.id.editMaintenanceDate);
+
+        editCost =
+                findViewById(R.id.editMaintenanceCost);
+
+        switchAlert =
+                findViewById(R.id.switchAlert);
+
+        btnSave =
+                findViewById(R.id.btnSaveMaintenance);
+
+        btnBack =
+                findViewById(R.id.backButton);
+    }
+
+    /**
+     * Initializes repository dependencies.
+     */
+    private void initializeRepository() {
+
+        maintenanceRepository =
+                new MaintenanceRepository(
+                        getApplicationContext()
+                );
+    }
+
+    /**
+     * Loads activity intent extras.
+     */
+    private void loadIntentData() {
+
+        Intent intent = getIntent();
+
+        vehicleId =
+                intent.getLongExtra(
+                        EXTRA_VEHICLE_ID,
+                        -1L
+                );
+
+        maintenanceId =
+                intent.getLongExtra(
+                        EXTRA_MAINTENANCE_ID,
+                        -1L
+                );
+    }
+
+    /**
+     * Configures UI interaction listeners.
+     */
+    private void setupListeners() {
+
+        btnSave.setOnClickListener(
+                v -> saveMaintenance()
+        );
+
+        btnBack.setOnClickListener(
+                v -> finish()
+        );
+
+        Calendar calendar =
+                Calendar.getInstance();
+
+        editDate.setOnClickListener(
+                v -> showDatePicker(calendar)
+        );
+    }
+
+    /**
+     * Displays the date picker dialog.
+     */
+    private void showDatePicker(
+            Calendar calendar
+    ) {
+
         new DatePickerDialog(
                 this,
-                (view, year, month, day) -> editDate.setText(
-                        String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)
-                ),
+                (view, year, month, day) ->
+                        editDate.setText(
+                                String.format(
+                                        Locale.US,
+                                        "%04d-%02d-%02d",
+                                        year,
+                                        month + 1,
+                                        day
+                                )
+                        ),
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         ).show();
     }
 
+    /**
+     * Loads an existing maintenance record.
+     */
     private void loadMaintenance() {
 
-        maintenanceRepo.getMaintenanceById(
+        maintenanceRepository.getMaintenanceById(
                 maintenanceId,
                 new MaintenanceRepository.SingleMaintenanceCallback() {
 
                     @Override
-                    public void onSuccess(MaintenanceRecord record) {
+                    public void onSuccess(
+                            MaintenanceRecord record
+                    ) {
 
                         runOnUiThread(() -> {
 
-                            editDescription.setText(record.getDescription());
-                            editDate.setText(record.getServiceDate());
+                            editDescription.setText(
+                                    record.getDescription()
+                            );
 
-                            // NEW
-                            editCost.setText(String.valueOf(record.getCost()));
+                            editDate.setText(
+                                    record.getServiceDate()
+                            );
 
-                            switchAlert.setChecked(record.isAlertsEnabled());
+                            if (record.getCost() != null) {
+
+                                editCost.setText(
+                                        String.valueOf(
+                                                record.getCost()
+                                        )
+                                );
+                            }
+
+                            switchAlert.setChecked(
+                                    record.isAlertsEnabled()
+                            );
                         });
                     }
 
                     @Override
-                    public void onError(String error) {
+                    public void onError(
+                            String error
+                    ) {
 
                         runOnUiThread(() ->
-                                Toast.makeText(
-                                        MaintenanceDetailActivity.this,
-                                        error,
-                                        Toast.LENGTH_LONG
-                                ).show()
+                                showToast(error)
                         );
                     }
                 }
         );
     }
 
+    /**
+     * Saves a maintenance record through the repository.
+     */
     private void saveMaintenance() {
 
-        MaintenanceRecord record;
-        boolean isNew = maintenanceId == -1;
+        Double cost = parseCost();
+
+        if (cost == null
+                && !editCost.getText()
+                .toString()
+                .trim()
+                .isEmpty()) {
+
+            showToast("Cost must be a valid number");
+
+            return;
+        }
+
+        MaintenanceRecord record =
+                buildMaintenanceRecord(cost);
+
+        boolean isNew =
+                maintenanceId == -1L;
 
         if (isNew) {
 
-            record = new MaintenanceRecord();
-            record.setVehicleId((int)vehicleId);
+            addMaintenance(record);
 
         } else {
 
-            record = new MaintenanceRecord();
-
-            // IMPORTANT
-            record.setId((long) maintenanceId);
-
-            record.setVehicleId((int)vehicleId);
-        }
-
-        String costText = editCost.getText().toString().trim();
-
-        double cost = 0;
-
-        if (!costText.isEmpty()) {
-
-            try {
-
-                cost = Double.parseDouble(costText);
-
-            } catch (NumberFormatException e) {
-
-                Toast.makeText(
-                        this,
-                        "Cost must be a valid number",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                return;
-            }
-        }
-
-        record.setDescription(editDescription.getText().toString().trim());
-        record.setServiceDate(editDate.getText().toString().trim());
-
-        // NEW
-        record.setCost(cost);
-
-        record.setAlertsEnabled(switchAlert.isChecked());
-
-        if (isNew) {
-
-            maintenanceRepo.addMaintenance(
-                    record,
-                    new MaintenanceRepository.AddMaintenanceCallback() {
-
-                        @Override
-                        public void onSuccess(MaintenanceRecord created) {
-
-                            runOnUiThread(() -> {
-
-                                if (record.isAlertsEnabled()) {
-                                    scheduleMaintenanceAlert(
-                                            record.getDescription(),
-                                            record.getServiceDate()
-                                    );
-                                }
-
-                                Toast.makeText(
-                                        MaintenanceDetailActivity.this,
-                                        "Maintenance created",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-
-                                finish();
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-
-                            runOnUiThread(() ->
-                                    Toast.makeText(
-                                            MaintenanceDetailActivity.this,
-                                            error,
-                                            Toast.LENGTH_LONG
-                                    ).show()
-                            );
-                        }
-                    }
-            );
-
-        } else {
-
-            maintenanceRepo.updateMaintenance(
-                    record,
-                    new MaintenanceRepository.UpdateMaintenanceCallback() {
-
-                        @Override
-                        public void onSuccess(MaintenanceRecord updated) {
-
-                            runOnUiThread(() -> {
-
-                                if (record.isAlertsEnabled()) {
-                                    scheduleMaintenanceAlert(
-                                            record.getDescription(),
-                                            record.getServiceDate()
-                                    );
-                                }
-
-                                Toast.makeText(
-                                        MaintenanceDetailActivity.this,
-                                        "Maintenance updated",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-
-                                finish();
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-
-                            runOnUiThread(() ->
-                                    Toast.makeText(
-                                            MaintenanceDetailActivity.this,
-                                            error,
-                                            Toast.LENGTH_LONG
-                                    ).show()
-                            );
-                        }
-                    }
-            );
+            updateMaintenance(record);
         }
     }
 
-    private void scheduleMaintenanceAlert(String description, String serviceDate) {
+    /**
+     * Creates a MaintenanceRecord from form input.
+     */
+    private MaintenanceRecord buildMaintenanceRecord(
+            Double cost
+    ) {
 
-        long triggerTime = parseDateToMillis(serviceDate);
+        MaintenanceRecord record =
+                new MaintenanceRecord();
+
+        if (maintenanceId != -1L) {
+            record.setId(maintenanceId);
+        }
+
+        record.setVehicleId((int) vehicleId);
+
+        record.setDescription(
+                editDescription.getText()
+                        .toString()
+                        .trim()
+        );
+
+        record.setServiceDate(
+                editDate.getText()
+                        .toString()
+                        .trim()
+        );
+
+        record.setCost(cost);
+
+        record.setAlertsEnabled(
+                switchAlert.isChecked()
+        );
+
+        return record;
+    }
+
+    /**
+     * Attempts to parse maintenance cost input.
+     */
+    private Double parseCost() {
+
+        String costText =
+                editCost.getText()
+                        .toString()
+                        .trim();
+
+        if (costText.isEmpty()) {
+            return null;
+        }
+
+        try {
+
+            return Double.parseDouble(costText);
+
+        } catch (NumberFormatException e) {
+
+            return null;
+        }
+    }
+
+    /**
+     * Creates a new maintenance record.
+     */
+    private void addMaintenance(
+            MaintenanceRecord record
+    ) {
+
+        maintenanceRepository.addMaintenance(
+                record,
+                new MaintenanceRepository.AddMaintenanceCallback() {
+
+                    @Override
+                    public void onSuccess(
+                            MaintenanceRecord created
+                    ) {
+
+                        runOnUiThread(() ->
+                                handleSaveSuccess(
+                                        record,
+                                        "Maintenance created"
+                                )
+                        );
+                    }
+
+                    @Override
+                    public void onError(
+                            String error
+                    ) {
+
+                        runOnUiThread(() ->
+                                showToast(error)
+                        );
+                    }
+                }
+        );
+    }
+
+    /**
+     * Updates an existing maintenance record.
+     */
+    private void updateMaintenance(
+            MaintenanceRecord record
+    ) {
+
+        maintenanceRepository.updateMaintenance(
+                record,
+                new MaintenanceRepository.UpdateMaintenanceCallback() {
+
+                    @Override
+                    public void onSuccess(
+                            MaintenanceRecord updated
+                    ) {
+
+                        runOnUiThread(() ->
+                                handleSaveSuccess(
+                                        record,
+                                        "Maintenance updated"
+                                )
+                        );
+                    }
+
+                    @Override
+                    public void onError(
+                            String error
+                    ) {
+
+                        runOnUiThread(() ->
+                                showToast(error)
+                        );
+                    }
+                }
+        );
+    }
+
+    /**
+     * Handles successful maintenance save operations.
+     */
+    private void handleSaveSuccess(
+            MaintenanceRecord record,
+            String successMessage
+    ) {
+
+        if (record.isAlertsEnabled()) {
+
+            scheduleMaintenanceAlert(
+                    record.getDescription(),
+                    record.getServiceDate()
+            );
+        }
+
+        showToast(successMessage);
+
+        finish();
+    }
+
+    /**
+     * Schedules a future maintenance alert notification.
+     */
+    private void scheduleMaintenanceAlert(
+            String description,
+            String serviceDate
+    ) {
+
+        long triggerTime =
+                parseDateToMillis(serviceDate);
 
         if (triggerTime < System.currentTimeMillis()) {
 
-            Toast.makeText(
-                    this,
-                    "Alert date must not be in the past",
-                    Toast.LENGTH_SHORT
-            ).show();
+            showToast(
+                    "Alert date must not be in the past"
+            );
 
             return;
         }
 
         AlarmManager alarmManager =
-                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                (AlarmManager) getSystemService(
+                        Context.ALARM_SERVICE
+                );
 
         Intent intent =
-                new Intent(this, MaintenanceAlertReceiver.class);
+                new Intent(
+                        this,
+                        MaintenanceAlertReceiver.class
+                );
 
-        intent.putExtra("maintenanceDescription", description);
+        intent.putExtra(
+                "title",
+                description
+        );
+
+        intent.putExtra(
+                "entityType",
+                ALERT_ENTITY_TYPE
+        );
+
+        intent.putExtra(
+                "eventType",
+                ALERT_EVENT_TYPE
+        );
 
         PendingIntent pendingIntent =
                 PendingIntent.getBroadcast(
@@ -293,19 +494,39 @@ public class MaintenanceDetailActivity extends AppCompatActivity {
         }
     }
 
-    private long parseDateToMillis(String dateStr) {
+    /**
+     * Converts a yyyy-MM-dd date string into milliseconds.
+     */
+    private long parseDateToMillis(
+            String dateString
+    ) {
 
         try {
 
-            Date date = sdf.parse(dateStr);
+            Date date =
+                    sdf.parse(dateString);
 
             return date != null
                     ? date.getTime()
-                    : -1;
+                    : -1L;
 
         } catch (ParseException e) {
 
-            return -1;
+            return -1L;
         }
+    }
+
+    /**
+     * Displays a short user message.
+     */
+    private void showToast(
+            String message
+    ) {
+
+        Toast.makeText(
+                this,
+                message,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

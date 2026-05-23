@@ -21,59 +21,82 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// DESIGN FOR SCALABILITY:
-// Feature-specific activity keeps UI modular,
-// allowing independent expansion of application features.
-
+/**
+ * Displays a combined maintenance and vehicle report.
+ */
 public class ReportActivity extends AppCompatActivity {
 
+    private static final String TIMESTAMP_FORMAT =
+            "yyyy-MM-dd HH:mm:ss";
+
     private RecyclerView rvReport;
+
     private TextView tvTimestamp;
+
     private Button btnBack;
 
-    private MaintenanceRepository maintenanceRepo;
-    private VehicleRepository vehicleRepo;
+    private MaintenanceRepository maintenanceRepository;
+
+    private VehicleRepository vehicleRepository;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
 
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_report);
 
-        // Bind views
-        rvReport = findViewById(R.id.rvReport);
+        initializeViews();
+
+        initializeRepositories();
+
+        setupRecyclerView();
+
+        displayTimestamp();
+
+        setupListeners();
+
+        loadReportData();
+    }
+
+    /**
+     * Initializes UI view references.
+     */
+    private void initializeViews() {
+
+        rvReport =
+                findViewById(R.id.rvReport);
 
         tvTimestamp =
                 findViewById(R.id.tvReportTimestamp);
 
         btnBack =
                 findViewById(R.id.btnBackToVehicles);
+    }
 
-        // Initialize repositories
-        maintenanceRepo =
+    /**
+     * Initializes repository dependencies.
+     */
+    private void initializeRepositories() {
+
+        maintenanceRepository =
                 new MaintenanceRepository(this);
 
-        vehicleRepo =
+        vehicleRepository =
                 new VehicleRepository(this);
+    }
 
-        // Professional timestamp with date and time
-        String timestamp =
-                new SimpleDateFormat(
-                        "yyyy-MM-dd HH:mm:ss",
-                        Locale.US
-                ).format(new Date());
+    /**
+     * Configures RecyclerView behavior and styling.
+     */
+    private void setupRecyclerView() {
 
-        tvTimestamp.setText(
-                "Report generated at: " + timestamp
-        );
-
-        // Set up RecyclerView
         rvReport.setLayoutManager(
                 new LinearLayoutManager(this)
         );
 
-        // Add dividers for a table-like appearance
         DividerItemDecoration divider =
                 new DividerItemDecoration(
                         rvReport.getContext(),
@@ -81,63 +104,115 @@ public class ReportActivity extends AppCompatActivity {
                 );
 
         rvReport.addItemDecoration(divider);
+    }
 
-        // -----------------------------------------------------
-        // LOAD VEHICLES THROUGH REPOSITORY CALLBACK
-        // -----------------------------------------------------
-        vehicleRepo.getAllVehicles(
+    /**
+     * Displays the report generation timestamp.
+     */
+    private void displayTimestamp() {
+
+        String timestamp =
+                new SimpleDateFormat(
+                        TIMESTAMP_FORMAT,
+                        Locale.US
+                ).format(new Date());
+
+        tvTimestamp.setText(
+                "Report generated at: "
+                        + timestamp
+        );
+    }
+
+    /**
+     * Configures UI interaction listeners.
+     */
+    private void setupListeners() {
+
+        btnBack.setOnClickListener(
+                v -> finish()
+        );
+    }
+
+    /**
+     * Loads vehicle and maintenance data
+     * required for the report.
+     */
+    private void loadReportData() {
+
+        vehicleRepository.getAllVehicles(
                 new VehicleRepository.VehicleCallback() {
 
                     @Override
-                    public void onSuccess(List<Vehicle> vehicles) {
+                    public void onSuccess(
+                            List<Vehicle> vehicles
+                    ) {
 
-                        // AFTER vehicles load, load maintenance
-                        maintenanceRepo.getAllMaintenance(
-                                new MaintenanceRepository.MaintenanceCallback() {
-
-                                    @Override
-                                    public void onSuccess(List<MaintenanceRecord> maintenanceRecords) {
-
-                                        runOnUiThread(() -> {
-
-                                            rvReport.setAdapter(
-                                                    new ReportAdapter(
-                                                            maintenanceRecords,
-                                                            vehicles
-                                                    )
-                                            );
-                                        });
-                                    }
-
-                                    @Override
-                                    public void onError(String error) {
-
-                                        runOnUiThread(() -> {
-
-                                            Toast.makeText(
-                                                    ReportActivity.this,
-                                                    error,
-                                                    Toast.LENGTH_LONG
-                                            ).show();
-                                        });
-                                    }
-                                }
-                        );
+                        loadMaintenanceData(vehicles);
                     }
 
                     @Override
-                    public void onError(String error) {
+                    public void onError(
+                            String error
+                    ) {
 
-                        Toast.makeText(
-                                ReportActivity.this,
-                                error,
-                                Toast.LENGTH_LONG
-                        ).show();
+                        runOnUiThread(() ->
+                                showToast(error)
+                        );
                     }
                 }
         );
+    }
 
-        // Back button returns to VehicleListActivity
-        btnBack.setOnClickListener(v -> finish());
+    /**
+     * Loads maintenance records after vehicles load successfully.
+     */
+    private void loadMaintenanceData(
+            List<Vehicle> vehicles
+    ) {
+
+        maintenanceRepository.getAllMaintenance(
+                new MaintenanceRepository.MaintenanceCallback() {
+
+                    @Override
+                    public void onSuccess(
+                            List<MaintenanceRecord> maintenanceRecords
+                    ) {
+
+                        runOnUiThread(() -> {
+
+                            rvReport.setAdapter(
+                                    new ReportAdapter(
+                                            maintenanceRecords,
+                                            vehicles
+                                    )
+                            );
+                        });
+                    }
+
+                    @Override
+                    public void onError(
+                            String error
+                    ) {
+
+                        runOnUiThread(() ->
+                                showToast(error)
+                        );
+                    }
+                }
+        );
+    }
+
+    /**
+     * Displays a short user message.
+     */
+    private void showToast(
+            String message
+    ) {
+
+        Toast.makeText(
+                this,
+                message,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

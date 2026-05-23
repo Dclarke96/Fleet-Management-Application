@@ -2,33 +2,58 @@ package com.dylanclarke.FleetManagementApp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
-import com.dylanclarke.FleetManagementApp.R;
+
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.dylanclarke.FleetManagementApp.R;
 
-// DESIGN FOR SCALABILITY:
-// Feature-specific activity keeps UI modular,
-// allowing independent expansion of application features.
-
+/**
+ * Main application landing screen.
+ *
+ * Provides navigation entry points into
+ * core Fleet Management features.
+ */
 public class MainActivity extends AppCompatActivity {
 
-    Button btnViewVehicles;
+    private Button btnViewVehicles;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        btnViewVehicles = findViewById(R.id.btnGoToVehicles); // updated ID
-        btnViewVehicles.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VehicleListActivity.class);
-                startActivity(intent);
-            }
-        });
+        initializeViews();
+
+        btnViewVehicles.setOnClickListener(
+                v -> openVehicleList()
+        );
+    }
+
+    /**
+     * Initializes UI view references.
+     */
+    private void initializeViews() {
+
+        btnViewVehicles =
+                findViewById(R.id.btnGoToVehicles);
+    }
+
+    /**
+     * Navigates to the vehicle management screen.
+     */
+    private void openVehicleList() {
+
+        Intent intent =
+                new Intent(
+                        MainActivity.this,
+                        VehicleListActivity.class
+                );
+
+        startActivity(intent);
     }
 }
-

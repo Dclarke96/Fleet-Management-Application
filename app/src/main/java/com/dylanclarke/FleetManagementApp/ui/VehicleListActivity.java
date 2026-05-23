@@ -19,17 +19,41 @@ import com.dylanclarke.FleetManagementApp.data.VehicleRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * Activity responsible for displaying, searching,
+ * navigating, and deleting vehicle records.
+ */
 public class VehicleListActivity extends AppCompatActivity {
+
+    // ---------------------------------------------------------
+    // UI COMPONENTS
+    // ---------------------------------------------------------
 
     private ListView vehicleListView;
     private EditText editSearchVehicle;
 
-    private final List<Vehicle> vehicles = new ArrayList<>();
+    private Button btnAddVehicle;
+    private Button btnGenerateReport;
+
+    // ---------------------------------------------------------
+    // DATA
+    // ---------------------------------------------------------
+
+    /**
+     * Master vehicle list loaded from API.
+     */
+    private final List<Vehicle> vehicles =
+            new ArrayList<>();
 
     private ArrayAdapter<Vehicle> adapter;
 
-    private VehicleRepository repository;
+    private VehicleRepository vehicleRepository;
+
+    // ---------------------------------------------------------
+    // LIFECYCLE
+    // ---------------------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,35 +62,55 @@ public class VehicleListActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_vehicle_list);
 
-        repository = new VehicleRepository(this);
+        initializeViews();
+        initializeRepository();
+        initializeListView();
+        initializeListeners();
+    }
 
-        vehicleListView = findViewById(R.id.vehicle_list_view);
+    @Override
+    protected void onResume() {
 
-        editSearchVehicle = findViewById(R.id.editSearchVehicle);
+        super.onResume();
 
-        Button btnAddVehicle =
+        loadVehicles();
+    }
+
+    // ---------------------------------------------------------
+    // INITIALIZATION
+    // ---------------------------------------------------------
+
+    /**
+     * Binds layout views.
+     */
+    private void initializeViews() {
+
+        vehicleListView =
+                findViewById(R.id.vehicle_list_view);
+
+        editSearchVehicle =
+                findViewById(R.id.editSearchVehicle);
+
+        btnAddVehicle =
                 findViewById(R.id.btnAddVehicle);
 
-        Button btnGenerateReport =
+        btnGenerateReport =
                 findViewById(R.id.btnGenerateReport);
+    }
 
-        btnGenerateReport.setOnClickListener(v -> {
+    /**
+     * Initializes repository dependencies.
+     */
+    private void initializeRepository() {
 
-            Intent intent =
-                    new Intent(this, ReportActivity.class);
+        vehicleRepository =
+                new VehicleRepository(this);
+    }
 
-            startActivity(intent);
-        });
-
-        btnAddVehicle.setOnClickListener(view ->
-
-                startActivity(
-                        new Intent(
-                                this,
-                                VehicleDetailActivity.class
-                        )
-                )
-        );
+    /**
+     * Configures list adapter and ListView.
+     */
+    private void initializeListView() {
 
         adapter = new ArrayAdapter<>(
                 this,
@@ -75,6 +119,20 @@ public class VehicleListActivity extends AppCompatActivity {
         );
 
         vehicleListView.setAdapter(adapter);
+    }
+
+    /**
+     * Registers click listeners and search listeners.
+     */
+    private void initializeListeners() {
+
+        btnAddVehicle.setOnClickListener(v ->
+                openVehicleDetail()
+        );
+
+        btnGenerateReport.setOnClickListener(v ->
+                openReport()
+        );
 
         vehicleListView.setOnItemClickListener(
                 (parent, view, position, id) -> {
@@ -84,18 +142,9 @@ public class VehicleListActivity extends AppCompatActivity {
 
                     if (selectedVehicle != null) {
 
-                        Intent intent =
-                                new Intent(
-                                        this,
-                                        VehicleDetailActivity.class
-                                );
-
-                        intent.putExtra(
-                                "vehicleId",
+                        openVehicleDetail(
                                 selectedVehicle.getId()
                         );
-
-                        startActivity(intent);
                     }
                 }
         );
@@ -108,26 +157,7 @@ public class VehicleListActivity extends AppCompatActivity {
 
                     if (selectedVehicle != null) {
 
-                        new AlertDialog.Builder(this)
-
-                                .setTitle("Delete Vehicle")
-
-                                .setMessage(
-                                        "Are you sure you want to delete this vehicle?"
-                                )
-
-                                .setPositiveButton(
-                                        "Delete",
-                                        (dialog, which) ->
-                                                deleteVehicle(selectedVehicle)
-                                )
-
-                                .setNegativeButton(
-                                        "Cancel",
-                                        null
-                                )
-
-                                .show();
+                        showDeleteDialog(selectedVehicle);
                     }
 
                     return true;
@@ -143,7 +173,9 @@ public class VehicleListActivity extends AppCompatActivity {
                             int start,
                             int count,
                             int after
-                    ) { }
+                    ) {
+                        // No action needed
+                    }
 
                     @Override
                     public void onTextChanged(
@@ -159,25 +191,23 @@ public class VehicleListActivity extends AppCompatActivity {
                     @Override
                     public void afterTextChanged(
                             Editable s
-                    ) { }
+                    ) {
+                        // No action needed
+                    }
                 }
         );
     }
 
-    @Override
-    protected void onResume() {
-
-        super.onResume();
-
-        loadVehicles();
-    }
-
     // ---------------------------------------------------------
-    // LOAD VEHICLES THROUGH REPOSITORY
+    // LOAD VEHICLES
     // ---------------------------------------------------------
+
+    /**
+     * Loads all vehicles from the API.
+     */
     private void loadVehicles() {
 
-        repository.getAllVehicles(
+        vehicleRepository.getAllVehicles(
                 new VehicleRepository.VehicleCallback() {
 
                     @Override
@@ -185,11 +215,14 @@ public class VehicleListActivity extends AppCompatActivity {
                             List<Vehicle> result
                     ) {
 
-                        vehicles.clear();
+                        runOnUiThread(() -> {
 
-                        vehicles.addAll(result);
+                            vehicles.clear();
 
-                        adapter.notifyDataSetChanged();
+                            vehicles.addAll(result);
+
+                            adapter.notifyDataSetChanged();
+                        });
                     }
 
                     @Override
@@ -197,86 +230,180 @@ public class VehicleListActivity extends AppCompatActivity {
                             String error
                     ) {
 
-                        Toast.makeText(
-                                VehicleListActivity.this,
-                                error,
-                                Toast.LENGTH_LONG
-                        ).show();
+                        runOnUiThread(() ->
+                                showToast(
+                                        error,
+                                        Toast.LENGTH_LONG
+                                )
+                        );
                     }
                 }
         );
     }
 
     // ---------------------------------------------------------
-    // SEARCH/FILTER
+    // SEARCH / FILTER
     // ---------------------------------------------------------
+
+    /**
+     * Filters vehicles by title, make,
+     * model, or location.
+     */
     private void filterVehicles(String query) {
 
         if (query == null || query.trim().isEmpty()) {
 
-            loadVehicles();
+            adapter.clear();
+
+            adapter.addAll(vehicles);
+
+            adapter.notifyDataSetChanged();
 
             return;
         }
 
-        String lower =
-                query.toLowerCase();
+        String normalizedQuery =
+                query.toLowerCase(Locale.US);
 
-        List<Vehicle> filtered =
+        List<Vehicle> filteredVehicles =
                 new ArrayList<>();
 
-        for (Vehicle v : vehicles) {
+        for (Vehicle vehicle : vehicles) {
 
-            if (v.getTitle()
-                    .toLowerCase()
-                    .contains(lower)
+            if (matchesVehicleSearch(
+                    vehicle,
+                    normalizedQuery
+            )) {
 
-                    ||
-
-                    v.getMake()
-                            .toLowerCase()
-                            .contains(lower)
-
-                    ||
-
-                    v.getModel()
-                            .toLowerCase()
-                            .contains(lower)
-
-                    ||
-
-                    v.getLocation()
-                            .toLowerCase()
-                            .contains(lower)) {
-
-                filtered.add(v);
+                filteredVehicles.add(vehicle);
             }
         }
 
         adapter.clear();
 
-        adapter.addAll(filtered);
+        adapter.addAll(filteredVehicles);
 
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Determines whether a vehicle matches
+     * the current search query.
+     */
+    private boolean matchesVehicleSearch(
+            Vehicle vehicle,
+            String query
+    ) {
+
+        return containsIgnoreCase(vehicle.getTitle(), query)
+                || containsIgnoreCase(vehicle.getMake(), query)
+                || containsIgnoreCase(vehicle.getModel(), query)
+                || containsIgnoreCase(vehicle.getLocation(), query);
+    }
+
+    /**
+     * Performs null-safe case-insensitive matching.
+     */
+    private boolean containsIgnoreCase(
+            String value,
+            String query
+    ) {
+
+        return value != null
+                && value.toLowerCase(Locale.US)
+                .contains(query);
+    }
+
     // ---------------------------------------------------------
-    // DELETE VEHICLE API
+    // NAVIGATION
     // ---------------------------------------------------------
+
+    /**
+     * Opens the vehicle creation screen.
+     */
+    private void openVehicleDetail() {
+
+        Intent intent =
+                new Intent(
+                        this,
+                        VehicleDetailActivity.class
+                );
+
+        startActivity(intent);
+    }
+
+    /**
+     * Opens vehicle detail screen for editing.
+     */
+    private void openVehicleDetail(Long vehicleId) {
+
+        Intent intent =
+                new Intent(
+                        this,
+                        VehicleDetailActivity.class
+                );
+
+        intent.putExtra("vehicleId", vehicleId);
+
+        startActivity(intent);
+    }
+
+    /**
+     * Opens the maintenance report screen.
+     */
+    private void openReport() {
+
+        Intent intent =
+                new Intent(
+                        this,
+                        ReportActivity.class
+                );
+
+        startActivity(intent);
+    }
+
+    // ---------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------
+
+    /**
+     * Displays confirmation dialog before deletion.
+     */
+    private void showDeleteDialog(Vehicle vehicle) {
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Vehicle")
+                .setMessage(
+                        "Are you sure you want to delete this vehicle?"
+                )
+                .setPositiveButton(
+                        "Delete",
+                        (dialog, which) ->
+                                deleteVehicle(vehicle)
+                )
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
+                .show();
+    }
+
+    /**
+     * Deletes a vehicle through the repository.
+     */
     private void deleteVehicle(Vehicle vehicle) {
 
         if (vehicle.getId() == null) {
 
-            Toast.makeText(
-                    this,
+            showToast(
                     "Vehicle ID is null",
                     Toast.LENGTH_LONG
-            ).show();
+            );
 
             return;
         }
 
-        repository.deleteVehicle(
+        vehicleRepository.deleteVehicle(
                 vehicle.getId(),
                 new VehicleRepository.DeleteVehicleCallback() {
 
@@ -285,11 +412,10 @@ public class VehicleListActivity extends AppCompatActivity {
 
                         runOnUiThread(() -> {
 
-                            Toast.makeText(
-                                    VehicleListActivity.this,
+                            showToast(
                                     "Vehicle deleted",
                                     Toast.LENGTH_SHORT
-                            ).show();
+                            );
 
                             loadVehicles();
                         });
@@ -299,15 +425,32 @@ public class VehicleListActivity extends AppCompatActivity {
                     public void onError(String error) {
 
                         runOnUiThread(() ->
-
-                                Toast.makeText(
-                                        VehicleListActivity.this,
+                                showToast(
                                         error,
                                         Toast.LENGTH_LONG
-                                ).show()
+                                )
                         );
                     }
                 }
         );
+    }
+
+    // ---------------------------------------------------------
+    // UTILITIES
+    // ---------------------------------------------------------
+
+    /**
+     * Displays a toast message.
+     */
+    private void showToast(
+            String message,
+            int duration
+    ) {
+
+        Toast.makeText(
+                this,
+                message,
+                duration
+        ).show();
     }
 }
