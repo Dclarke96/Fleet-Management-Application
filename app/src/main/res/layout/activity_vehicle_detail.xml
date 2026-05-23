@@ -25,6 +25,15 @@
             android:layout_marginHorizontal="4dp"
             android:clipToPadding="false">
 
+            <TextView
+                android:id="@+id/tvVehicleDetailGuide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create or manage vehicle information and maintenance records"
+                android:textSize="14sp"
+                android:alpha="0.7"
+                android:layout_marginBottom="12dp"/>
+
             <!-- Vehicle Entry Name -->
             <EditText
                 android:id="@+id/editTitle"
@@ -126,6 +135,17 @@
             android:textStyle="bold"
             android:textSize="18sp"
             android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvMaintenanceEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No maintenance records available."
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="12dp"
+            android:visibility="gone"
+            android:alpha="0.7"/>
 
         <ListView
             android:id="@+id/maintenanceList"

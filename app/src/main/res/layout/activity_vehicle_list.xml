@@ -7,6 +7,7 @@
     android:padding="16dp"
     android:fitsSystemWindows="true">
 
+    <!-- TITLE -->
     <TextView
         android:id="@+id/vehicle_list_title"
         android:layout_width="wrap_content"
@@ -14,9 +15,19 @@
         android:text="Your Vehicles"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:paddingBottom="4dp"/>
+
+    <!-- GUIDANCE TEXT (FUE IMPROVEMENT) -->
+    <TextView
+        android:id="@+id/tvVehicleGuide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap a vehicle to view details or long press to edit/delete"
+        android:textSize="12sp"
+        android:alpha="0.6"
         android:paddingBottom="8dp"/>
 
-    <!-- ✅ Search box for vehicles -->
+    <!-- SEARCH BOX -->
     <EditText
         android:id="@+id/editSearchVehicle"
         android:layout_width="match_parent"
@@ -26,12 +37,26 @@
         android:layout_marginBottom="8dp"
         android:inputType="text" />
 
+    <!-- EMPTY STATE (FUE IMPROVEMENT) -->
+    <TextView
+        android:id="@+id/tvEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No vehicles found.\nTap 'Add Vehicle' to get started."
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:padding="24dp"
+        android:alpha="0.7"/>
+
+    <!-- LIST -->
     <ListView
         android:id="@+id/vehicle_list_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- BUTTONS -->
     <Button
         android:id="@+id/btnGenerateReport"
         android:layout_width="wrap_content"
@@ -45,4 +70,5 @@
         android:layout_height="wrap_content"
         android:text="Add Vehicle"
         android:layout_marginBottom="8dp"/>
+
 </LinearLayout>
