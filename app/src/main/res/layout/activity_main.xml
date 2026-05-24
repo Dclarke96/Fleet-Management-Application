@@ -4,24 +4,28 @@
     android:layout_height="match_parent"
     android:padding="32dp"
     android:gravity="center"
-    android:orientation="vertical"
-    android:background="#FFF5F5">
+    android:orientation="vertical">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fleet Management"
+        android:text="Fleet Management System"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading your dashboard..."
+        android:textSize="14sp"
+        android:alpha="0.6"
         android:layout_marginBottom="24dp" />
 
     <Button
         android:id="@+id/btnGoToVehicles"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="VIEW VEHICLES"
-        android:textAllCaps="true"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:background="@android:color/holo_blue_light" />
+        android:text="Continue"
+        style="@style/AppButton_Primary"/>
 </LinearLayout>

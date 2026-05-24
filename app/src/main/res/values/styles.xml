@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ===================================================== -->
+    <!-- PRIMARY BUTTON -->
+    <!-- ===================================================== -->
+
+    <style name="AppButton_Primary">
+        <item name="android:backgroundTint">@color/button_primary</item>
+        <item name="android:textColor">@color/button_primary_text</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:padding">12dp</item>
+    </style>
+
+    <!-- ===================================================== -->
+    <!-- SECONDARY BUTTON -->
+    <!-- ===================================================== -->
+
+    <style name="AppButton_Secondary">
+        <item name="android:backgroundTint">@color/button_secondary</item>
+        <item name="android:textColor">@color/button_secondary_text</item>
+        <item name="android:padding">12dp</item>
+    </style>
+
+    <!-- ===================================================== -->
+    <!-- INPUT FIELDS -->
+    <!-- ===================================================== -->
+
+    <style name="AppInput">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:background">@android:drawable/edit_text</item>
+    </style>
+
+</resources>

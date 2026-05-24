@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+    <!-- CONTENT AREA -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -16,20 +17,25 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
     </ScrollView>
 
+    <!-- PRIMARY ACTION -->
     <Button
         android:id="@+id/btnAddMaintenance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Maintenance"
-        android:layout_marginTop="8dp" />
+        style="@style/AppButton_Primary"
+        android:layout_marginTop="12dp" />
 
+    <!-- NAVIGATION / SECONDARY ACTION -->
     <Button
         android:id="@+id/backButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Back"
+        style="@style/AppButton_Secondary"
         android:layout_marginTop="8dp" />
 
 </LinearLayout>

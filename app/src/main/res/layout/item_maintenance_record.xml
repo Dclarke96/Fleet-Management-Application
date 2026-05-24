@@ -1,23 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="12dp"
-    android:background="#f0f0f0"
+    android:padding="16dp"
+    android:background="@color/surface"
     android:layout_marginTop="8dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:elevation="2dp">
+
+    <!-- ===================================================== -->
+    <!-- MAINTENANCE TITLE -->
+    <!-- ===================================================== -->
 
     <TextView
         android:id="@+id/txtMaintenanceDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="18sp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:textColor="@color/text_primary"
+        android:paddingBottom="4dp" />
+
+    <!-- ===================================================== -->
+    <!-- DATE -->
+    <!-- ===================================================== -->
 
     <TextView
         android:id="@+id/txtMaintenanceDate"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:paddingBottom="8dp" />
+
+    <!-- ===================================================== -->
+    <!-- ACTION BUTTONS -->
+    <!-- ===================================================== -->
 
     <LinearLayout
         android:orientation="horizontal"
@@ -27,16 +45,21 @@
 
         <Button
             android:id="@+id/btnEditMaintenance"
-            android:text="Edit"
-            android:layout_weight="1"
+            style="@style/AppButton_Primary"
             android:layout_width="0dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit"
+            android:layout_marginEnd="6dp" />
 
         <Button
             android:id="@+id/btnDeleteMaintenance"
-            android:text="Delete"
-            android:layout_weight="1"
+            style="@style/AppButton_Secondary"
             android:layout_width="0dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete"
+            android:layout_marginStart="6dp" />
     </LinearLayout>
+
 </LinearLayout>

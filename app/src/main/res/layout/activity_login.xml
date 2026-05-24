@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- APP TITLE -->
     <TextView
         android:id="@+id/tvAppTitle"
         android:layout_width="wrap_content"
@@ -16,6 +17,7 @@
         android:layout_marginBottom="6dp"
         android:gravity="center"/>
 
+    <!-- SUBTITLE -->
     <TextView
         android:id="@+id/tvAppSubtitle"
         android:layout_width="wrap_content"
@@ -26,25 +28,33 @@
         android:layout_marginBottom="24dp"
         android:gravity="center"/>
 
+    <!-- USERNAME -->
     <EditText
         android:id="@+id/etUsername"
-        android:hint="Username"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:hint="Username"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/edit_text"/>
 
+    <!-- PASSWORD -->
     <EditText
         android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:hint="Password"
         android:inputType="textPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"/>
+        android:padding="12dp"
+        android:layout_marginBottom="20dp"
+        android:background="@android:drawable/edit_text"/>
 
+    <!-- LOGIN BUTTON -->
     <Button
         android:id="@+id/btnLogin"
-        android:text="Login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"/>
+        android:text="Login"
+        style="@style/AppButton_Primary"/>
 
 </LinearLayout>

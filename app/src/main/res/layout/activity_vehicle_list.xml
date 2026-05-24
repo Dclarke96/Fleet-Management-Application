@@ -17,7 +17,7 @@
         android:textStyle="bold"
         android:paddingBottom="4dp"/>
 
-    <!-- GUIDANCE TEXT (FUE IMPROVEMENT) -->
+    <!-- GUIDANCE TEXT -->
     <TextView
         android:id="@+id/tvVehicleGuide"
         android:layout_width="wrap_content"
@@ -25,19 +25,20 @@
         android:text="Tap a vehicle to view details or long press to edit/delete"
         android:textSize="12sp"
         android:alpha="0.6"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="12dp"/>
 
-    <!-- SEARCH BOX -->
+    <!-- SEARCH BOX (will later be upgraded to AppInput style) -->
     <EditText
         android:id="@+id/editSearchVehicle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search vehicles by make, model, or license"
-        android:padding="8dp"
-        android:layout_marginBottom="8dp"
-        android:inputType="text" />
+        android:inputType="text"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/edit_text"/>
 
-    <!-- EMPTY STATE (FUE IMPROVEMENT) -->
+    <!-- EMPTY STATE -->
     <TextView
         android:id="@+id/tvEmptyState"
         android:layout_width="match_parent"
@@ -47,28 +48,29 @@
         android:gravity="center"
         android:visibility="gone"
         android:padding="24dp"
-        android:alpha="0.7"/>
+        android:alpha="0.7"
+        android:layout_marginBottom="8dp"/>
 
     <!-- LIST -->
     <ListView
         android:id="@+id/vehicle_list_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_marginBottom="12dp"/>
 
-    <!-- BUTTONS -->
-    <Button
-        android:id="@+id/btnGenerateReport"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Generate Report"
-        android:layout_marginBottom="8dp" />
-
+    <!-- ACTION BUTTONS -->
     <Button
         android:id="@+id/btnAddVehicle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Vehicle"
         android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnGenerateReport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Generate Report"/>
 
 </LinearLayout>

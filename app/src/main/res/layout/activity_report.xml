@@ -4,85 +4,145 @@
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:background="@color/background">
 
-    <!-- Title -->
+    <!-- ===================================================== -->
+    <!-- TITLE -->
+    <!-- ===================================================== -->
+
     <TextView
         android:id="@+id/tvReportTitle"
-        android:text="Maintenance Report"
-        android:textSize="20sp"
-        android:textStyle="bold"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Maintenance Report"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:paddingBottom="4dp" />
 
-    <!-- Timestamp (styled for visibility) -->
+    <!-- ===================================================== -->
+    <!-- SUBTITLE / GUIDANCE -->
+    <!-- ===================================================== -->
+
+    <TextView
+        android:id="@+id/tvReportGuide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View maintenance activity across all tracked vehicles"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
+        android:paddingBottom="12dp" />
+
+    <!-- ===================================================== -->
+    <!-- REPORT TIMESTAMP -->
+    <!-- ===================================================== -->
+
     <TextView
         android:id="@+id/tvReportTimestamp"
-        android:text="Report generated: "
-        android:textSize="14sp"
-        android:textStyle="italic"
-        android:textColor="#000000"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
-        android:layout_marginTop="8dp"/>
+        android:text="Report generated:"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:textColor="@color/text_secondary"
+        android:paddingBottom="12dp" />
 
-    <!-- Column Headers -->
+    <!-- ===================================================== -->
+    <!-- COLUMN HEADER CARD -->
+    <!-- ===================================================== -->
+
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:background="@color/surface"
+        android:layout_marginBottom="6dp">
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Vehicle"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Location"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Service Date"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
 
         <TextView
-            android:text="Description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"/>
+            android:text="Description"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
 
         <TextView
-            android:text="Alert"
-            android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textStyle="bold"/>
+            android:layout_weight="1"
+            android:text="Alert"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- RecyclerView -->
+    <!-- ===================================================== -->
+    <!-- EMPTY STATE -->
+    <!-- ===================================================== -->
+
+    <TextView
+        android:id="@+id/tvEmptyReportState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No maintenance records available."
+        android:textSize="15sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:padding="20dp"
+        android:visibility="gone" />
+
+    <!-- ===================================================== -->
+    <!-- REPORT LIST -->
+    <!-- ===================================================== -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvReport"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
 
-    <!-- Back Button -->
+    <!-- ===================================================== -->
+    <!-- ACTION BUTTON -->
+    <!-- ===================================================== -->
+
     <Button
         android:id="@+id/btnBackToVehicles"
-        android:text="Back to Vehicle List"
+        style="@style/AppButton_Secondary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"/>
+        android:text="Back to Vehicle List"
+        android:layout_marginTop="12dp" />
 
 </LinearLayout>
