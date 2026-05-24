@@ -15,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.dylanclarke.FleetManagementApp.R;
 import com.dylanclarke.FleetManagementApp.data.Vehicle;
 import com.dylanclarke.FleetManagementApp.data.VehicleRepository;
+import com.dylanclarke.FleetManagementApp.util.VehicleValidator;
+import com.dylanclarke.FleetManagementApp.ui.state.LoadingController;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -58,6 +61,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private long vehicleId = -1L;
 
+    private LoadingController loadingController;
+
     // ---------------------------------------------------------
     // LIFECYCLE
     // ---------------------------------------------------------
@@ -70,8 +75,18 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         initializeViews();
         initializeRepository();
-        initializeVehicleState();
         initializeListeners();
+
+        loadingController = new LoadingController(
+                btnSave,
+                null,
+                btnDelete,
+                btnShare,
+                btnAddMaintenance,
+                btnManageMaintenance
+        );
+
+        initializeVehicleState();
     }
 
     // ---------------------------------------------------------
@@ -123,7 +138,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
                 loadVehicle();
 
-                btnDelete.setVisibility(View.VISIBLE);
+                btnDelete.setVisibility(vehicleId == -1L ? View.GONE : View.VISIBLE);
             }
         }
     }
@@ -173,6 +188,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private void loadVehicle() {
 
+        loadingController.show();
+
         vehicleRepository.getVehicleById(
                 vehicleId,
                 new VehicleRepository.SingleVehicleCallback() {
@@ -180,15 +197,19 @@ public class VehicleDetailActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Vehicle vehicle) {
 
-                        runOnUiThread(() -> populateVehicleFields(vehicle));
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            populateVehicleFields(vehicle);
+                        });
                     }
 
                     @Override
                     public void onError(String error) {
 
-                        runOnUiThread(() ->
-                                showToast(error, Toast.LENGTH_LONG)
-                        );
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            showToast(error, Toast.LENGTH_LONG);
+                        });
                     }
                 }
         );
@@ -229,16 +250,19 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         Vehicle vehicle = buildVehicleFromForm();
 
-        if (vehicle == null) {
+        if (vehicle == null) return;
+
+        VehicleValidator.ValidationResult result =
+                VehicleValidator.validate(vehicle);
+
+        if (!result.isValid) {
+            showToast(result.message, Toast.LENGTH_SHORT);
             return;
         }
 
         if (vehicleId == -1L) {
-
             createVehicle(vehicle);
-
         } else {
-
             updateVehicle(vehicle);
         }
     }
@@ -248,58 +272,26 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private Vehicle buildVehicleFromForm() {
 
-        String title =
-                editTitle.getText().toString().trim();
-
-        String make =
-                editMake.getText().toString().trim();
-
-        String model =
-                editModel.getText().toString().trim();
-
-        String yearText =
-                editYear.getText().toString().trim();
-
-        String location =
-                editLocation.getText().toString().trim();
-
-        String startDate =
-                editStartDate.getText().toString().trim();
-
-        String endDate =
-                editEndDate.getText().toString().trim();
-
-        if (title.isEmpty()) {
-
-            showToast(
-                    "Vehicle name is required",
-                    Toast.LENGTH_SHORT
-            );
-
-            return null;
-        }
+        String title = editTitle.getText().toString().trim();
+        String make = editMake.getText().toString().trim();
+        String model = editModel.getText().toString().trim();
+        String yearText = editYear.getText().toString().trim();
+        String location = editLocation.getText().toString().trim();
+        String startDate = editStartDate.getText().toString().trim();
+        String endDate = editEndDate.getText().toString().trim();
 
         int year = 0;
 
         if (!yearText.isEmpty()) {
-
             try {
-
                 year = Integer.parseInt(yearText);
-
             } catch (NumberFormatException e) {
-
-                showToast(
-                        "Year must be a number",
-                        Toast.LENGTH_SHORT
-                );
-
+                showToast("Year must be a number", Toast.LENGTH_SHORT);
                 return null;
             }
         }
 
         Vehicle vehicle = new Vehicle();
-
         vehicle.setId(vehicleId);
         vehicle.setTitle(title);
         vehicle.setMake(make);
@@ -308,10 +300,7 @@ public class VehicleDetailActivity extends AppCompatActivity {
         vehicle.setLocation(location);
         vehicle.setStartDate(startDate);
         vehicle.setEndDate(endDate);
-
-        vehicle.setMaintenanceAlertsEnabled(
-                switchAlert.isChecked()
-        );
+        vehicle.setMaintenanceAlertsEnabled(switchAlert.isChecked());
 
         return vehicle;
     }
@@ -321,35 +310,40 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private void createVehicle(Vehicle vehicle) {
 
-        vehicleRepository.addVehicle(
-                vehicle,
-                new VehicleRepository.AddVehicleCallback() {
+        loadingController.show();
 
-                    @Override
-                    public void onSuccess(Vehicle createdVehicle) {
+        btnSave.postDelayed(() -> {
 
-                        runOnUiThread(() -> {
+            vehicleRepository.addVehicle(
+                    vehicle,
+                    new VehicleRepository.AddVehicleCallback() {
 
-                            vehicleId = createdVehicle.getId();
+                        @Override
+                        public void onSuccess(Vehicle createdVehicle) {
 
-                            btnDelete.setVisibility(View.VISIBLE);
+                            runOnUiThread(() -> {
 
-                            showToast(
-                                    "Vehicle created",
-                                    Toast.LENGTH_SHORT
-                            );
-                        });
+                                loadingController.hide();
+
+                                vehicleId = createdVehicle.getId();
+                                btnDelete.setVisibility(View.VISIBLE);
+
+                                showToast("Vehicle created", Toast.LENGTH_SHORT);
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() -> {
+                                loadingController.hide();
+                                showToast(error, Toast.LENGTH_LONG);
+                            });
+                        }
                     }
+            );
 
-                    @Override
-                    public void onError(String error) {
-
-                        runOnUiThread(() ->
-                                showToast(error, Toast.LENGTH_LONG)
-                        );
-                    }
-                }
-        );
+        }, 2000); // 👈 2 second artificial delay
     }
 
     /**
@@ -357,30 +351,37 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private void updateVehicle(Vehicle vehicle) {
 
-        vehicleRepository.updateVehicle(
-                vehicle,
-                new VehicleRepository.UpdateVehicleCallback() {
+        loadingController.show();
 
-                    @Override
-                    public void onSuccess(Vehicle updatedVehicle) {
+        btnSave.postDelayed(() -> {
 
-                        runOnUiThread(() ->
-                                showToast(
-                                        "Vehicle updated",
-                                        Toast.LENGTH_SHORT
-                                )
-                        );
+            vehicleRepository.updateVehicle(
+                    vehicle,
+                    new VehicleRepository.UpdateVehicleCallback() {
+
+                        @Override
+                        public void onSuccess(Vehicle updatedVehicle) {
+
+                            runOnUiThread(() -> {
+
+                                loadingController.hide();
+
+                                showToast("Vehicle updated", Toast.LENGTH_SHORT);
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() -> {
+                                loadingController.hide();
+                                showToast(error, Toast.LENGTH_LONG);
+                            });
+                        }
                     }
+            );
 
-                    @Override
-                    public void onError(String error) {
-
-                        runOnUiThread(() ->
-                                showToast(error, Toast.LENGTH_LONG)
-                        );
-                    }
-                }
-        );
+        }, 2000); // 👈 2 second artificial delay
     }
 
     // ---------------------------------------------------------
@@ -477,6 +478,8 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private void deleteVehicle() {
 
+        loadingController.show();
+
         vehicleRepository.deleteVehicle(
                 vehicleId,
                 new VehicleRepository.DeleteVehicleCallback() {
@@ -486,11 +489,9 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
                         runOnUiThread(() -> {
 
-                            showToast(
-                                    "Vehicle deleted",
-                                    Toast.LENGTH_SHORT
-                            );
+                            loadingController.hide();
 
+                            showToast("Vehicle deleted", Toast.LENGTH_SHORT);
                             finish();
                         });
                     }
@@ -498,9 +499,10 @@ public class VehicleDetailActivity extends AppCompatActivity {
                     @Override
                     public void onError(String error) {
 
-                        runOnUiThread(() ->
-                                showToast(error, Toast.LENGTH_LONG)
-                        );
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            showToast(error, Toast.LENGTH_LONG);
+                        });
                     }
                 }
         );
@@ -515,9 +517,9 @@ public class VehicleDetailActivity extends AppCompatActivity {
      */
     private void shareVehicle() {
 
-        if (!hasSavedVehicle()) {
-            return;
-        }
+        if (!hasSavedVehicle()) return;
+
+        loadingController.show();
 
         vehicleRepository.getVehicleById(
                 vehicleId,
@@ -526,17 +528,19 @@ public class VehicleDetailActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Vehicle vehicle) {
 
-                        runOnUiThread(() ->
-                                launchShareIntent(vehicle)
-                        );
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            launchShareIntent(vehicle);
+                        });
                     }
 
                     @Override
                     public void onError(String error) {
 
-                        runOnUiThread(() ->
-                                showToast(error, Toast.LENGTH_LONG)
-                        );
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            showToast(error, Toast.LENGTH_LONG);
+                        });
                     }
                 }
         );
