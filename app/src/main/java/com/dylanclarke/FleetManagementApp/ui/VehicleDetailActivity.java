@@ -312,38 +312,34 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         loadingController.show();
 
-        btnSave.postDelayed(() -> {
+        vehicleRepository.addVehicle(
+                vehicle,
+                new VehicleRepository.AddVehicleCallback() {
 
-            vehicleRepository.addVehicle(
-                    vehicle,
-                    new VehicleRepository.AddVehicleCallback() {
+                    @Override
+                    public void onSuccess(Vehicle createdVehicle) {
 
-                        @Override
-                        public void onSuccess(Vehicle createdVehicle) {
+                        runOnUiThread(() -> {
 
-                            runOnUiThread(() -> {
+                            loadingController.hide();
 
-                                loadingController.hide();
+                            vehicleId = createdVehicle.getId();
+                            btnDelete.setVisibility(View.VISIBLE);
 
-                                vehicleId = createdVehicle.getId();
-                                btnDelete.setVisibility(View.VISIBLE);
-
-                                showToast("Vehicle created", Toast.LENGTH_SHORT);
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-
-                            runOnUiThread(() -> {
-                                loadingController.hide();
-                                showToast(error, Toast.LENGTH_LONG);
-                            });
-                        }
+                            showToast("Vehicle created", Toast.LENGTH_SHORT);
+                        });
                     }
-            );
 
-        }, 2000); // 👈 2 second artificial delay
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            showToast(error, Toast.LENGTH_LONG);
+                        });
+                    }
+                }
+        );
     }
 
     /**
@@ -353,35 +349,31 @@ public class VehicleDetailActivity extends AppCompatActivity {
 
         loadingController.show();
 
-        btnSave.postDelayed(() -> {
+        vehicleRepository.updateVehicle(
+                vehicle,
+                new VehicleRepository.UpdateVehicleCallback() {
 
-            vehicleRepository.updateVehicle(
-                    vehicle,
-                    new VehicleRepository.UpdateVehicleCallback() {
+                    @Override
+                    public void onSuccess(Vehicle updatedVehicle) {
 
-                        @Override
-                        public void onSuccess(Vehicle updatedVehicle) {
+                        runOnUiThread(() -> {
 
-                            runOnUiThread(() -> {
+                            loadingController.hide();
 
-                                loadingController.hide();
-
-                                showToast("Vehicle updated", Toast.LENGTH_SHORT);
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-
-                            runOnUiThread(() -> {
-                                loadingController.hide();
-                                showToast(error, Toast.LENGTH_LONG);
-                            });
-                        }
+                            showToast("Vehicle updated", Toast.LENGTH_SHORT);
+                        });
                     }
-            );
 
-        }, 2000); // 👈 2 second artificial delay
+                    @Override
+                    public void onError(String error) {
+
+                        runOnUiThread(() -> {
+                            loadingController.hide();
+                            showToast(error, Toast.LENGTH_LONG);
+                        });
+                    }
+                }
+        );
     }
 
     // ---------------------------------------------------------
