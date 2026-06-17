@@ -48,6 +48,7 @@ public class VehicleListActivity extends AppCompatActivity {
     // ---------------------------------------------------------
 
     private final List<Vehicle> vehicles = new ArrayList<>();
+    private final List<Vehicle> filteredVehicles = new ArrayList<>();
     private ArrayAdapter<Vehicle> adapter;
     private VehicleRepository vehicleRepository;
 
@@ -108,7 +109,7 @@ public class VehicleListActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
-                vehicles
+                filteredVehicles
         );
 
         vehicleListView.setAdapter(adapter);
@@ -181,6 +182,10 @@ public class VehicleListActivity extends AppCompatActivity {
 
                             vehicles.clear();
                             vehicles.addAll(result);
+
+                            filteredVehicles.clear();
+                            filteredVehicles.addAll(result);
+
                             adapter.notifyDataSetChanged();
 
                             updateEmptyState();
@@ -204,31 +209,26 @@ public class VehicleListActivity extends AppCompatActivity {
 
     private void filterVehicles(String query) {
 
+        filteredVehicles.clear();
+
         if (query == null || query.trim().isEmpty()) {
 
-            adapter.clear();
-            adapter.addAll(vehicles);
-            adapter.notifyDataSetChanged();
+            filteredVehicles.addAll(vehicles);
 
-            updateEmptyState();
-            return;
-        }
+        } else {
 
-        String normalizedQuery = query.toLowerCase(Locale.US);
+            String normalizedQuery =
+                    query.toLowerCase(Locale.US);
 
-        List<Vehicle> filteredVehicles = new ArrayList<>();
+            for (Vehicle vehicle : vehicles) {
 
-        for (Vehicle vehicle : vehicles) {
-
-            if (matchesVehicleSearch(vehicle, normalizedQuery)) {
-                filteredVehicles.add(vehicle);
+                if (matchesVehicleSearch(vehicle, normalizedQuery)) {
+                    filteredVehicles.add(vehicle);
+                }
             }
         }
 
-        adapter.clear();
-        adapter.addAll(filteredVehicles);
         adapter.notifyDataSetChanged();
-
         updateEmptyState();
     }
 
@@ -252,7 +252,7 @@ public class VehicleListActivity extends AppCompatActivity {
 
     private void updateEmptyState() {
 
-        if (vehicles.isEmpty()) {
+        if (filteredVehicles.isEmpty()) {
 
             vehicleListView.setVisibility(View.GONE);
             tvEmptyState.setVisibility(View.VISIBLE);

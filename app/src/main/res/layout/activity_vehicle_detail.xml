@@ -147,7 +147,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Add Maintenance"
+                    android:text="Add Record"
                     android:layout_marginEnd="8dp"/>
 
                 <Button
@@ -156,7 +156,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Manage Maintenance"
+                    android:text="Manage Records"
                     android:layout_marginStart="8dp"/>
             </LinearLayout>
 
