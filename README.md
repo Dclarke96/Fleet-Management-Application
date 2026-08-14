@@ -1,119 +1,166 @@
-🚀 Fleet Management Android App (Frontend)
-Overview
+# Fleet Management Application
 
-The Fleet Management Android application is a mobile client for managing vehicle and maintenance data within a fleet management system.
+Fleet Management is an Android application for managing vehicles and maintenance records. The project began as a university application and was later extended to communicate with the Fleet Management REST API, providing centralized data storage and API-backed workflows.
 
-It integrates with a Spring Boot REST API backend and uses JWT-based authentication to securely access protected resources.
+## Project Evolution
 
-The application supports vehicle management, maintenance tracking, reporting, and data sharing. It has been refactored from an earlier local-storage prototype into a fully API-driven Android client.
+This application represents the starting point of the Fleet Management project and evolved alongside the backend systems that support it.
 
-✨ Features
-Secure login using JWT authentication
-View all vehicles from backend API
-Create, update, and delete vehicles
-View detailed vehicle information
-Add, edit, and delete maintenance records per vehicle
-Generate fleet maintenance reports
-Set maintenance alerts
-Share vehicle information using system share intent
-Search and filter vehicles by multiple attributes
-Input validation for data integrity
-🧱 Tech Stack
-Java (primary) + Kotlin (partial usage)
-Android SDK
-Spring Boot REST API (backend integration)
-Retrofit (network communication)
-OkHttp (HTTP client)
-Custom ApiClient wrapper
-Repository pattern (data abstraction layer)
-JWT authentication (Bearer token)
-Material Design components
-JUnit testing
-🏗 Architecture
+### Original University Project
 
-The application follows a layered architecture using the Repository pattern.
+The application was initially developed as a university project using **Room** for local data persistence. The original implementation focused on vehicle and maintenance management within the Android application.
 
-UI Layer (Activities)
-↓
-Repository Layer (Data Access & Business Logic)
-↓
-Networking Layer (ApiClient + Retrofit ApiService)
-↓
-REST API (Spring Boot Backend)
-Architecture Overview
-UI Layer (Activities)
-Handles user interface rendering, navigation, and user interactions. Activities communicate directly with the repository layer.
-Repository Layer
-Acts as the central data handler for the application. It manages API calls and prepares data for the UI layer.
-Networking Layer
-Built using Retrofit and OkHttp, configured through a centralized ApiClient. This layer handles all HTTP communication and authentication headers.
-REST API Backend
-Provides business logic, authentication, and persistent data storage.
-🔐 Authentication
-Authentication is handled using JWT (JSON Web Token).
-Users log in via the backend API.
-The JWT token is stored locally using SharedPreferences.
-All authenticated requests include the token in the Authorization: Bearer <token> header.
-Token injection is handled automatically via an OkHttp interceptor in ApiClient.
-🌐 Backend Integration
+### Fleet Management API
 
-The application is fully integrated with a Spring Boot REST API backend responsible for:
+After completing the initial application, a **Spring Boot REST API** was developed to provide centralized persistence, authentication, authorization, and multi-user access.
 
-Vehicle management
-Maintenance tracking
-Reporting
-Authentication and authorization
+### API Integration
 
-All application data is retrieved and persisted through API requests. The app does not use a local database as its primary data source.
+The Android application was subsequently updated to communicate with the Fleet Management API using **Retrofit** and **Gson**. The deployed/tested version uses the API for vehicle and maintenance operations rather than relying on the original local-data workflow.
 
-📡 Networking Layer
+This progression reflects the evolution of the project from a standalone academic application into a client application backed by a dedicated REST API.
 
-Networking is implemented using Retrofit, configured through a centralized ApiClient.
+---
 
-ApiClient Responsibilities:
-Initialize and configure Retrofit instance
+## 🛠 Features
 
-Define base URL: http://10.0.2.2:8080/
+* Add, edit, and delete vehicles
+* Track maintenance records for each vehicle
+* Set optional maintenance alerts
+* View detailed vehicle and maintenance information
+* Search vehicles by relevant vehicle information
+* Generate vehicle and maintenance reports
+* Validate user input and business rules
+* Communicate with the Fleet Management REST API
+* Handle network and server-side errors
 
+---
 
-Attach JWT authentication interceptor
-Enable HTTP logging for debugging
-Configure network timeouts
+## 📱 Screenshots
 
-This ensures a centralized and maintainable networking setup across the application.
+![Home Screen](screenshots/home_screen.png)
 
-📱 Application Screens
-Login Screen
-Vehicle List Screen
-Vehicle Detail Screen
-Maintenance List Screen
-Maintenance Detail Screen
-Report Screen
-🧪 Testing
-Unit tests for repository logic
-Validation tests for vehicle and maintenance workflows
-CRUD operation verification
-API integration testing (development environment)
-⚙️ Setup Instructions
-Clone the repository
-Open the project in Android Studio
-Sync Gradle dependencies
-Ensure the backend Spring Boot server is running
+![Vehicle Detail](screenshots/vehicle_detail.png)
 
-Verify the API base URL in ApiClient: http://10.0.2.2:8080/
+![Maintenance Records](screenshots/maintenance_records.png)
 
+> Screenshots are stored in the `screenshots/` folder.
 
-Run the application on an emulator or physical device
-📌 Notes
-The backend API must be running for full functionality
-Uses 10.0.2.2 for local emulator backend access
-Architecture follows a layered Repository-based design (not MVVM)
-The application is API-driven and does not rely on a local database for primary data storage
-Designed for development and testing environments
-🚀 Future Improvements
-Introduce ViewModel layer for full MVVM architecture migration
-Add offline caching using Room database
-Improve error handling and retry mechanisms
-Add token refresh support (if implemented on backend)
-Improve first-time user onboarding flow
-Optimize API response handling and performance
+---
+
+## 📖 User Guide
+
+The full interactive user guide is available in PDF format:
+
+[View the User Guide](user-guides/FleetManagement_UserGuide.pdf)
+
+> The PDF includes a clickable table of contents for easy navigation.
+
+---
+
+## ⚙ How to Operate the Application
+
+### Launch the App
+
+* Open the Fleet Management app on an Android device.
+* The home screen provides access to vehicle management and application features.
+
+### Manage Vehicles
+
+* **Add Vehicle**: Tap Add → enter vehicle details → Save
+* **Edit Vehicle**: Select a vehicle → modify fields → Save
+* **Delete Vehicle**: Select a vehicle → Delete
+* Vehicles with associated maintenance records cannot be deleted when restricted by the application's business rules.
+
+### Manage Maintenance
+
+* Select a vehicle → View Maintenance → Add/Edit/Delete entries
+* Maintenance dates are validated against applicable vehicle dates.
+
+### Search Vehicles
+
+* Use the search functionality to filter vehicles by supported vehicle information.
+
+### Generate Reports
+
+* Select **Generate Report** from the main screen to view a summary of vehicles and maintenance information.
+
+---
+
+## 🔌 API Integration
+
+The current application communicates with the Fleet Management REST API for backend operations.
+
+* **Networking:** Retrofit
+* **Serialization:** Gson
+* **Backend:** Spring Boot REST API
+* **Authentication:** JWT-based authentication
+* **Data:** Vehicle and maintenance records managed through API requests
+
+The API repository is available here:
+
+[Fleet Management API](https://github.com/Dclarke96/Fleet-Management-API)
+
+---
+
+## 🧪 Testing
+
+The application includes automated Android tests covering core vehicle workflows and validation.
+
+* Add, edit, and delete vehicle operations
+* Vehicle search functionality
+* Data validation
+
+Tests are located under:
+
+`app/src/androidTest/java/com/dylanclarke/FleetManagementApp/VehicleRepositoryTest.kt`
+
+Screenshots of test results are included in the `screenshots/` folder.
+
+---
+
+## 📦 APK Deployment
+
+* **Tested Environment:** Android SDK 35
+* **Minimum SDK:** 26 (Android 8.0 / Oreo)
+
+### Installation
+
+1. Download the signed APK from the project deployment page.
+2. Enable installation from unknown sources if prompted.
+3. Open the APK and select **Install**.
+4. Launch the Fleet Management application.
+
+> A downloadable APK will be provided through the project's deployment/portfolio site.
+
+---
+
+## 🧩 Technology Stack
+
+* Java
+* Android SDK
+* Retrofit
+* Gson
+* Material Design
+* JUnit
+* Android testing framework
+* REST API integration
+* MVVM architecture
+
+> **Historical technology:** The original university implementation used Room for local persistence. The application was later updated to use the Fleet Management REST API.
+
+---
+
+## 🔗 Related Projects
+
+### Fleet Management API
+
+The Spring Boot backend developed to provide centralized persistence, authentication, authorization, and API access for the Fleet Management application.
+
+[View the Fleet Management API](https://github.com/Dclarke96/Fleet-Management-API)
+
+### Spring Boot API Template
+
+The reusable Spring Boot foundation developed from the engineering patterns and practices established during the Fleet Management API project.
+
+[View the Spring Boot API Template](https://github.com/Dclarke96/Spring-Boot-API-Template)
